@@ -59,16 +59,15 @@ test("driver login uses office-managed phone/password credentials without forced
   assert.doesNotMatch(source, /complete_password_setup/);
 });
 
-test("branch employee creation is restricted to ADMIN and HEAD_OFFICE", () => {
-  const roleGuard = branchSource.match(
-    /\[\s*"ADMIN"\s*,\s*"HEAD_OFFICE"\s*\]\.includes\(item\.roles\?\.name\)/,
-  );
-  assert.ok(roleGuard, "Branch employee creation must allow only ADMIN and HEAD_OFFICE");
-  assert.doesNotMatch(
-    branchSource,
-    /\[\s*"ADMIN"\s*,\s*"HEAD_OFFICE"\s*,\s*"BRANCH"\s*\]\.includes/,
-    "BRANCH must not create additional branch accounts",
-  );
+test("branch employee creation is restricted by the authorized Main Office directory RPC", () => {
+  const gate = branchSource.indexOf('callerClient.rpc("main_office_get_directory")');
+  const deny = branchSource.indexOf('if (officeAccessError)', gate);
+  const create = branchSource.indexOf("admin.auth.admin.createUser", gate);
+  assert.ok(gate >= 0, "Main Office authorization RPC must be checked");
+  assert.ok(deny > gate, "Authorization failures must be handled before account creation");
+  assert.ok(create > deny, "Branch account creation must occur only after authorization succeeds");
+  assert.match(branchSource, /MAIN_OFFICE_ACCESS_REQUIRED|INSUFFICIENT_ROLE/);
+  assert.doesNotMatch(branchSource, /\[\s*"ADMIN"\s*,\s*"HEAD_OFFICE"\s*,\s*"BRANCH"\s*\]\.includes/);
 });
 
 test("branch employee creation validates identity, credentials, and exactly one active branch office", () => {
