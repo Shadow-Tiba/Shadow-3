@@ -160,6 +160,24 @@
   #root .bg-amber-50\/60 {
     background-color: rgb(59 45 26 / 60%) !important;
   }
+  #root .bg-sky-50\/60, #root .bg-violet-50\/60 {
+    background-color: rgb(18 48 71 / 60%) !important;
+  }
+  #root .bg-emerald-50\/50 {
+    background-color: rgb(18 57 47 / 50%) !important;
+  }
+  #root .bg-blue-50\/40 {
+    background-color: rgb(18 48 71 / 40%) !important;
+  }
+  #root .bg-violet-50\/40 {
+    background-color: rgb(43 35 67 / 40%) !important;
+  }
+  #root .hover\\:bg-violet-50:hover {
+    background-color: #2b2343 !important;
+  }
+  #root .hover\\:bg-red-50:hover {
+    background-color: #3b2029 !important;
+  }
   #root .hover\:border-slate-300:hover,
   #root .hover\:border-gray-300:hover {
     border-color: #3c7188 !important;
