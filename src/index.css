@@ -81,6 +81,19 @@
   #root .bg-gray-50, #root .bg-gray-100 {
     background-color: #10243a !important;
   }
+  /* Translucent light borders and washes used by the original office screens. */
+  #root .border-white, #root .border-white\/80, #root .border-white\/70,
+  #root .border-white\/60, #root .border-white\/50 {
+    border-color: #294158 !important;
+  }
+  #root .bg-white\/10 { background-color: rgb(255 255 255 / 7%) !important; }
+  #root .bg-white\/15 { background-color: rgb(255 255 255 / 10%) !important; }
+  #root .shadow-sm, #root .shadow-md { --tw-shadow-color: rgb(0 0 0 / 18%); }
+  #root .divide-slate-100 > :not(:last-child),
+  #root .divide-slate-200 > :not(:last-child) { border-color: #294158 !important; }
+  #root .placeholder-slate-400::placeholder { color: #8da5ba !important; }
+    background-color: #10243a !important;
+  }
   #root .bg-slate-900, #root .bg-slate-800 { background-color: #0b1d30 !important; }
   #root .border-slate-100, #root .border-slate-200, #root .border-slate-300,
   #root .border-gray-100, #root .border-gray-200 {
