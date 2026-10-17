@@ -187,7 +187,7 @@ export const LiveOperationsBoard: React.FC = () => {
   }, [data]);
 
   if (loading && !data) {
-    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-[#f3f7fb] via-white to-[#eaf5fc] p-6 text-slate-100"><div className="rounded-3xl border border-[#dce6ef] bg-white px-8 py-9 text-center shadow-lg shadow-black/20"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-[#dff7f3] text-[#075e75]"><ClipboardList size={30}/></div><p className="text-xs font-black tracking-widest text-[#075e75]">TIBA SUPPLIES</p><p className="mt-2 text-lg font-black">جاري تجهيز مركز التشغيل</p><p className="mt-1 text-sm text-slate-500">بنحمّل بيانات التشغيل الحقيقية...</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-[#dff7f3]"><div className="h-full w-1/2 animate-pulse rounded-full bg-[#0f9b8e]"/></div></div></div>;
+    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-[#f3f7fb] via-white to-[#eaf5fc] p-6 text-[#10243a]"><div className="rounded-3xl border border-[#dce6ef] bg-white px-8 py-9 text-center shadow-lg shadow-black/20"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-[#dff7f3] text-[#075e75]"><ClipboardList size={30}/></div><p className="text-xs font-black tracking-widest text-[#075e75]">TIBA SUPPLIES</p><p className="mt-2 text-lg font-black">جاري تجهيز مركز التشغيل</p><p className="mt-1 text-sm text-slate-500">بنحمّل بيانات التشغيل الحقيقية...</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-[#dff7f3]"><div className="h-full w-1/2 animate-pulse rounded-full bg-[#0f9b8e]"/></div></div></div>;
   }
 
   const operationalOffice = data?.operational_office ?? data?.office;
@@ -222,21 +222,21 @@ export const LiveOperationsBoard: React.FC = () => {
       </header>
 
       <main className="mx-auto max-w-[1440px] space-y-4 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6">
-        {error && <div className="rounded-2xl border border-red-400/30 bg-[#fff0f1] p-4 text-sm text-rose-100">خطأ: {error}</div>}
+        {error && <div className="rounded-2xl border border-red-400/30 bg-[#fff0f1] p-4 text-sm text-rose-800">خطأ: {error}</div>}
 
-        {successMessage && <div className="rounded-2xl border border-emerald-400/30 bg-[#e9f8f0] p-4 text-sm text-emerald-100">{successMessage}</div>}
+        {successMessage && <div className="rounded-2xl border border-emerald-400/30 bg-[#e9f8f0] p-4 text-sm text-emerald-800">{successMessage}</div>}
 
         {activeScreen === 'dashboard' && (data?.office_notifications ?? []).length > 0 && <section aria-label="تنبيهات المكتب" className="rounded-2xl border border-amber-500/30 bg-white p-4 shadow-sm sm:p-5">
           <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-700" size={21}/><h2 className="font-black text-[#10243a]">تنبيهات التشغيل والوزن الفعلي</h2></div>
           <div className="space-y-2">{(data?.office_notifications ?? []).slice(0, 10).map((notice: Record<string, any>) => <article key={notice.id} className="rounded-xl border border-amber-500/20 bg-[#fff4df] p-3">
             <div className="font-bold">{notice.title}</div>
             <p className="mt-1 text-sm leading-6 text-slate-700">{notice.body}</p>
-            <div className="mt-1 text-xs text-slate-400">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</div>
+            <div className="mt-1 text-xs text-slate-500">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</div>
           </article>)}</div>
         </section>}
 
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-          <aside className="w-full shrink-0 rounded-[26px] border border-[#dce6ef] bg-white p-3 shadow-[0_14px_38px_rgba(0,0,0,0.25)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
+          <aside className="w-full shrink-0 rounded-[26px] border border-[#dce6ef] bg-white p-3 shadow-[0_14px_38px_rgba(15,40,60,0.07)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
             <div className="mb-3 rounded-2xl border border-[#dce6ef] bg-gradient-to-l from-[#eaf5fc] via-white to-[#f3f7fb] px-4 py-4">
               <div className="text-[10px] font-black tracking-[0.14em] text-teal-700">TIBA SUPPLIES</div>
               <h2 className="mt-1 text-lg font-black text-[#10243a]">إدارة المكتب</h2>
