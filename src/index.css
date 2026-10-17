@@ -92,8 +92,6 @@
   #root .divide-slate-100 > :not(:last-child),
   #root .divide-slate-200 > :not(:last-child) { border-color: #294158 !important; }
   #root .placeholder-slate-400::placeholder { color: #8da5ba !important; }
-    background-color: #10243a !important;
-  }
   #root .bg-slate-900, #root .bg-slate-800 { background-color: #0b1d30 !important; }
   #root .border-slate-100, #root .border-slate-200, #root .border-slate-300,
   #root .border-gray-100, #root .border-gray-200 {
