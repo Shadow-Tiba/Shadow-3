@@ -148,14 +148,14 @@
 
 
   /* Keep legacy light hover utilities dark on the branch tabs and other older screens. */
-  #root .hover\\:bg-slate-50:hover,
-  #root .hover\\:bg-slate-100:hover,
-  #root .hover\\:bg-gray-50:hover,
-  #root .hover\\:bg-gray-100:hover {
+  #root .hover\:bg-slate-50:hover,
+  #root .hover\:bg-slate-100:hover,
+  #root .hover\:bg-gray-50:hover,
+  #root .hover\:bg-gray-100:hover {
     background-color: #17324a !important;
   }
-  #root .hover\\:border-slate-300:hover,
-  #root .hover\\:border-gray-300:hover {
+  #root .hover\:border-slate-300:hover,
+  #root .hover\:border-gray-300:hover {
     border-color: #3c7188 !important;
   }
 
