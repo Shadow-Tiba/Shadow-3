@@ -188,7 +188,7 @@ export const LiveOperationsBoard: React.FC = () => {
   }, [data]);
 
   if (loading && !data) {
-    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-teal-50 via-white to-orange-50 p-6 text-slate-800"><div className="rounded-3xl border border-teal-100 bg-white/90 px-8 py-9 text-center shadow-lg shadow-teal-900/5"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-teal-100 text-teal-700"><ClipboardList size={30}/></div><p className="text-xs font-black tracking-widest text-teal-700">TIBA SUPPLIES</p><p className="mt-2 text-lg font-black">جاري تجهيز مركز التشغيل</p><p className="mt-1 text-sm text-slate-500">بنحمّل بيانات التشغيل الحقيقية...</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-teal-100"><div className="h-full w-1/2 animate-pulse rounded-full bg-teal-600"/></div></div></div>;
+    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-teal-50 via-white to-orange-50 p-6 text-slate-800"><div className="rounded-3xl border border-[#294158] bg-[#10243a]/95 px-8 py-9 text-center shadow-lg shadow-black/20"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-teal-100 text-teal-700"><ClipboardList size={30}/></div><p className="text-xs font-black tracking-widest text-teal-700">TIBA SUPPLIES</p><p className="mt-2 text-lg font-black">جاري تجهيز مركز التشغيل</p><p className="mt-1 text-sm text-slate-500">بنحمّل بيانات التشغيل الحقيقية...</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-teal-100"><div className="h-full w-1/2 animate-pulse rounded-full bg-teal-600"/></div></div></div>;
   }
 
   const operationalOffice = data?.operational_office ?? data?.office;
@@ -196,7 +196,7 @@ export const LiveOperationsBoard: React.FC = () => {
   const checkInRadiusKm = Number(checkInOffice?.geofence_radius_m ?? 10000) / 1000;
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f3f6fa] text-slate-900 selection:bg-cyan-200">
+    <div dir="rtl" className="min-h-screen bg-[#071426] text-slate-100 selection:bg-cyan-900">
       <header className="relative sm:sticky sm:top-0 z-30 overflow-hidden border-b border-slate-800 bg-gradient-to-l from-[#071426] via-[#0c2340] to-[#102f4b] text-white shadow-xl shadow-slate-950/15">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-6">
           <div className="min-w-0 w-full sm:w-auto">
@@ -237,11 +237,11 @@ export const LiveOperationsBoard: React.FC = () => {
         </section>}
 
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-          <aside className="w-full shrink-0 rounded-[26px] border border-slate-200 bg-white p-3 shadow-[0_14px_38px_rgba(15,40,60,0.07)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
-            <div className="mb-3 rounded-2xl border border-slate-100 bg-gradient-to-l from-[#e4f7fa] via-white to-[#edf3ff] px-4 py-4">
-              <div className="text-[10px] font-black tracking-[0.14em] text-teal-800">TIBA SUPPLIES</div>
-              <h2 className="mt-1 text-lg font-black text-slate-900">إدارة المكتب</h2>
-              <p className="mt-1 text-xs leading-5 text-slate-500">كل شاشات التشغيل في مكان واحد</p>
+          <aside className="w-full shrink-0 rounded-[26px] border border-[#294158] bg-[#0c1c2e] p-3 shadow-[0_14px_38px_rgba(0,0,0,0.25)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
+            <div className="mb-3 rounded-2xl border border-[#294158] bg-gradient-to-l from-[#123447] via-[#10243a] to-[#142d44] px-4 py-4">
+              <div className="text-[10px] font-black tracking-[0.14em] text-teal-300">TIBA SUPPLIES</div>
+              <h2 className="mt-1 text-lg font-black text-slate-100">إدارة المكتب</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-400">كل شاشات التشغيل في مكان واحد</p>
             </div>
             <nav className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:grid xl:grid-cols-1 xl:overflow-visible" aria-label="التنقل بين شاشات المكتب">
               {([
@@ -261,7 +261,7 @@ export const LiveOperationsBoard: React.FC = () => {
                 ['assistant', 'مساعد النظام AI', Bot],
               ] as const).map(([key, label, Icon]) => {
                 const selected = activeScreen === key;
-                return <button key={key} type="button" onClick={() => setActiveScreen(key as typeof activeScreen)} className={selected ? `flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-right text-xs font-black text-white shadow-md transition xl:w-full xl:text-sm ${screenPalette[key].selected}` : 'flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2 text-right text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 xl:w-full xl:text-sm'}>
+                return <button key={key} type="button" onClick={() => setActiveScreen(key as typeof activeScreen)} className={selected ? `flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-right text-xs font-black text-white shadow-md transition xl:w-full xl:text-sm ${screenPalette[key].selected}` : 'flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-[#294158] bg-[#10243a] px-3 py-2 text-right text-xs font-semibold text-slate-300 transition hover:border-[#3c7188] hover:bg-[#17324a] hover:text-white xl:w-full xl:text-sm'}>
                   <span className={selected ? "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/15" : `grid h-8 w-8 shrink-0 place-items-center rounded-lg ${screenPalette[key].iconBg} ${screenPalette[key].icon}`}><Icon className="h-4 w-4 shrink-0" /></span>
                   <span className="min-w-0 flex-1 leading-5">{label}</span>
                   {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -269,7 +269,7 @@ export const LiveOperationsBoard: React.FC = () => {
               })}
             </nav>
           </aside>
-          <section className={`min-w-0 flex-1 space-y-4 rounded-[1.75rem] border border-white/80 p-2 shadow-sm transition-colors sm:space-y-5 sm:p-4 ${screenPalette[activeScreen].wash}`}>
+          <section className={`min-w-0 flex-1 space-y-4 rounded-[1.75rem] border border-[#294158] bg-[#0b1d30] p-2 shadow-[0_14px_38px_rgba(0,0,0,0.18)] transition-colors sm:space-y-5 sm:p-4 ${screenPalette[activeScreen].wash}`}>
         {activeScreen === 'analytics' ? <section className="space-y-5">
           <div className="rounded-3xl border border-indigo-100 bg-gradient-to-l from-indigo-950 via-blue-950 to-slate-900 p-5 text-white shadow-lg sm:p-6">
             <p className="text-xs font-black tracking-widest text-cyan-300">PERFORMANCE ANALYTICS</p>
