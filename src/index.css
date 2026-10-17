@@ -177,6 +177,15 @@
   #root .hover\\:bg-slate-50\/70:hover {
     background-color: rgb(23 50 74 / 80%) !important;
   }
+  /* Keep semantic status washes distinct from the neutral dark card surfaces. */
+  #root .bg-emerald-50 { background-color: #12392f !important; }
+  #root .bg-red-50 { background-color: #3b2029 !important; }
+  #root .bg-blue-50 { background-color: #123047 !important; }
+  #root .bg-sky-50 { background-color: #123447 !important; }
+  #root .bg-amber-50 { background-color: #3b2d1a !important; }
+  #root .bg-teal-50, #root .bg-cyan-50 { background-color: #123447 !important; }
+  #root .bg-violet-50, #root .bg-purple-50 { background-color: #2b2343 !important; }
+  #root .hover\\:bg-violet-50\\/60:hover { background-color: rgb(43 35 67 / 70%) !important; }
   #root .bg-sky-50\/60, #root .bg-violet-50\/60 {
     background-color: rgb(18 48 71 / 60%) !important;
   }
