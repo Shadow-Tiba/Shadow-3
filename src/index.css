@@ -46,6 +46,16 @@
     border-color: #3c7188 !important;
     box-shadow: 0 8px 24px rgb(0 0 0 / 22%);
   }
+  #root main { color: var(--tiba-text); }
+  #root table { border-color: var(--tiba-border); }
+  #root th { background-color: #142d44; color: #d8e8f4; font-weight: 800; }
+  #root td, #root hr { border-color: var(--tiba-border); }
+  #root button:disabled { cursor: not-allowed; }
+  #root button:not(:disabled):focus-visible { outline: 3px solid #20c7b5; outline-offset: 3px; }
+  #root ::-webkit-scrollbar { width: 10px; height: 10px; }
+  #root ::-webkit-scrollbar-track { background: #071426; }
+  #root ::-webkit-scrollbar-thumb { background: #35516a; border: 2px solid #071426; border-radius: 999px; }
+  #root ::-webkit-scrollbar-thumb:hover { background: #20c7b5; }
   #root button {
     transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
   }
