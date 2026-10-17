@@ -258,3 +258,109 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Design B — Light & Clean. Keep the existing office information density and type scale. */
+:root {
+  color-scheme: light;
+  --tiba-navy: #10243a;
+  --tiba-blue: #1769aa;
+  --tiba-teal: #0f9b8e;
+  --tiba-orange: #ef8b24;
+  --tiba-surface: #ffffff;
+  --tiba-canvas: #f3f7fb;
+  --tiba-border: #dce6ef;
+  --tiba-text: #10243a;
+  --tiba-muted: #64748b;
+}
+
+@layer base {
+  html { background: var(--tiba-canvas); }
+  body { background: var(--tiba-canvas); color: var(--tiba-text); }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline-color: #0f9b8e;
+  }
+  ::selection { background: #b8eee7; color: #10243a; }
+}
+
+@layer components {
+  #root main { color: var(--tiba-text); }
+  #root th { background-color: #eef4f9; color: #10243a; }
+  #root table, #root td, #root hr { border-color: #dce6ef; }
+  #root article:hover { border-color: #80cfc5 !important; box-shadow: 0 6px 18px rgb(16 36 58 / 9%); }
+  #root input, #root select, #root textarea {
+    border-color: #cbd8e4 !important;
+    background-color: #ffffff !important;
+    color: #10243a !important;
+  }
+  #root input::placeholder, #root textarea::placeholder { color: #64748b !important; }
+  #root input:focus, #root select:focus, #root textarea:focus {
+    border-color: #0f9b8e !important;
+    box-shadow: 0 0 0 3px rgb(15 155 142 / 14%) !important;
+  }
+}
+
+@layer utilities {
+  /* Restore light neutral surfaces after the legacy dark-theme compatibility rules. */
+  #root .bg-white, #root .bg-white\/90, #root .bg-white\/80, #root .bg-white\/70,
+  #root .bg-slate-50, #root .bg-slate-50\/70, #root .bg-slate-100,
+  #root .bg-gray-50, #root .bg-gray-100 {
+    background-color: #ffffff !important;
+  }
+  #root .bg-slate-900, #root .bg-slate-800 { background-color: #edf3f8 !important; }
+  #root .text-slate-950, #root .text-slate-900, #root .text-slate-800,
+  #root .text-slate-700, #root .text-slate-600, #root .text-gray-900,
+  #root .text-gray-800, #root .text-gray-700, #root .text-gray-600 {
+    color: #10243a !important;
+  }
+  #root .text-slate-500, #root .text-slate-400, #root .text-gray-500,
+  #root .text-gray-400 { color: #64748b !important; }
+  #root .border-white, #root .border-white\/80, #root .border-white\/70,
+  #root .border-white\/60, #root .border-white\/50,
+  #root .border-slate-100, #root .border-slate-200, #root .border-slate-300,
+  #root .border-gray-100, #root .border-gray-200 {
+    border-color: #dce6ef !important;
+  }
+  #root .divide-slate-100 > :not(:last-child),
+  #root .divide-slate-200 > :not(:last-child) { border-color: #e2eaf1 !important; }
+  #root .bg-teal-50, #root .bg-cyan-50, #root .bg-sky-50, #root .bg-blue-50,
+  #root .bg-indigo-50 { background-color: #eaf5fc !important; }
+  #root .bg-emerald-50, #root .bg-green-50 { background-color: #e9f8f0 !important; }
+  #root .bg-amber-50, #root .bg-yellow-50, #root .bg-orange-50 { background-color: #fff4df !important; }
+  #root .bg-red-50, #root .bg-rose-50 { background-color: #fff0f1 !important; }
+  #root .bg-violet-50, #root .bg-purple-50 { background-color: #f4efff !important; }
+  #root .text-teal-700, #root .text-teal-800, #root .text-cyan-700,
+  #root .text-cyan-800, #root .text-sky-700, #root .text-sky-800,
+  #root .text-sky-900, #root .text-sky-950 { color: #075e75 !important; }
+  #root .text-emerald-800, #root .text-emerald-700, #root .text-green-800 { color: #087443 !important; }
+  #root .text-amber-950, #root .text-amber-900, #root .text-amber-800,
+  #root .text-amber-700, #root .text-orange-900, #root .text-orange-800,
+  #root .text-orange-700, #root .text-orange-600 { color: #8a4b08 !important; }
+  #root .text-red-800, #root .text-red-700, #root .text-rose-800,
+  #root .text-rose-700 { color: #a32132 !important; }
+  #root .text-violet-900, #root .text-violet-800, #root .text-violet-700,
+  #root .text-violet-600, #root .text-purple-800, #root .text-purple-700 { color: #6535a6 !important; }
+  #root .bg-emerald-950 { background-color: #d8f5e6 !important; color: #087443 !important; }
+  #root .bg-orange-950 { background-color: #fff0d4 !important; }
+  #root .bg-amber-950 { background-color: #fff0d4 !important; }
+  #root .bg-red-100 { background-color: #ffe3e6 !important; }
+  #root .bg-sky-100 { background-color: #dff2ff !important; }
+  #root .bg-amber-100 { background-color: #fff0d4 !important; }
+  #root .bg-violet-100 { background-color: #eee5ff !important; }
+  #root .bg-emerald-100, #root .bg-green-100 { background-color: #d8f5e6 !important; }
+  #root .hover\\:bg-slate-50:hover, #root .hover\\:bg-slate-100:hover,
+  #root .hover\\:bg-gray-50:hover, #root .hover\\:bg-gray-100:hover { background-color: #edf3f8 !important; }
+  #root .hover\\:bg-violet-50:hover { background-color: #eee5ff !important; }
+  #root .hover\\:bg-red-50:hover { background-color: #ffe3e6 !important; }
+  #root .hover\\:border-slate-300:hover, #root .hover\\:border-gray-300:hover { border-color: #9fb2c3 !important; }
+  #root .leaflet-popup-content-wrapper, #root .leaflet-popup-tip {
+    background: #ffffff !important; color: #10243a !important; border-color: #dce6ef;
+    box-shadow: 0 10px 24px rgb(16 36 58 / 14%);
+  }
+  #root .leaflet-popup-content { color: #10243a; }
+  #root .leaflet-popup-content a, #root .leaflet-control-attribution a { color: #0f766e !important; }
+  #root .leaflet-bar a, #root .leaflet-bar a:hover {
+    background: #ffffff !important; color: #10243a !important; border-bottom-color: #dce6ef !important;
+  }
+  #root .leaflet-control-attribution { background: rgb(255 255 255 / 90%) !important; color: #64748b !important; }
+}
