@@ -114,6 +114,18 @@
   #root .bg-red-50, #root .bg-rose-50 { background-color: #3b2029 !important; }
   #root .text-teal-700, #root .text-teal-800, #root .text-cyan-700,
   #root .text-cyan-800, #root .text-sky-700 { color: #5ce4d3 !important; }
+  /* Accessible semantic accents for status pills and phone actions across screens. */
+  #root .bg-orange-50, #root .bg-amber-50 { background-color: #3b2d1a !important; }
+  #root .text-orange-800, #root .text-orange-700 { color: #ffd19a !important; }
+  #root .text-amber-800, #root .text-amber-700 { color: #ffd27d !important; }
+  #root .text-emerald-800, #root .text-emerald-700, #root .text-green-800 { color: #7ce7bd !important; }
+  #root .text-blue-800, #root .text-blue-700, #root .text-indigo-800 { color: #9acbff !important; }
+  #root .text-violet-800, #root .text-violet-700, #root .text-purple-800 { color: #d0b5ff !important; }
+  #root .bg-emerald-950 { background-color: #10372e !important; }
+  #root .bg-orange-950 { background-color: #3b2d1a !important; }
+  #root .bg-blue-50, #root .bg-indigo-50 { background-color: #123047 !important; }
+  #root .bg-violet-50, #root .bg-purple-50 { background-color: #2b2343 !important; }
+  #root .bg-orange-50 { background-color: #3b2d1a !important; }
 }
 
 @media print {
