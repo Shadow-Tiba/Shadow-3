@@ -3,7 +3,7 @@ name: Deploy branch employee Edge Function
 on:
   push:
     branches:
-      - main
+      - shadow/phase1-hardening
     paths:
       - "supabase/functions/create-branch-employee/**"
       - ".github/workflows/deploy-branch-employee-function.yml"
@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: shadow/phase1-hardening
 
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
@@ -25,8 +27,16 @@ jobs:
           version: latest
 
       - name: Deploy create-branch-employee
+        shell: bash
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          test -n "$SUPABASE_ACCESS_TOKEN" || (echo "Missing repository secret: SUPABASE_ACCESS_TOKEN" && exit 1)
-          supabase functions deploy create-branch-employee --project-ref "tnlcvwtphbunteifoonc"
+          test "${GITHUB_REF_NAME}" = "shadow/phase1-hardening" || {
+            echo "::error::This workflow may deploy only from shadow/phase1-hardening"
+            exit 1
+          }
+          test -n "$SUPABASE_ACCESS_TOKEN" || {
+            echo "::error::Missing repository secret: SUPABASE_ACCESS_TOKEN"
+            exit 1
+          }
+          supabase functions deploy create-branch-employee --project-ref "bvyxiahpxogblkmtjxyx"

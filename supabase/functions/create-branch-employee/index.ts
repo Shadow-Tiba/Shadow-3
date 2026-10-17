@@ -25,15 +25,11 @@ Deno.serve(async (req: Request) => {
     });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser(token);
     if (callerError || !callerData.user) return json({ error: "AUTH_REQUIRED" }, 401);
-    const { data: caller, error: callerProfileError } = await admin.from("app_users")
-      .select("user_id,is_active").eq("auth_user_id", callerData.user.id).eq("is_active", true).maybeSingle();
-    if (callerProfileError) throw callerProfileError;
-    if (!caller) return json({ error: "INSUFFICIENT_ROLE" }, 403);
-    const { data: callerRoles, error: callerRolesError } = await admin.from("user_roles")
-      .select("roles!inner(name)").eq("user_id", caller.user_id);
-    if (callerRolesError) throw callerRolesError;
-    if (!(callerRoles ?? []).some((item: any) => ["ADMIN", "HEAD_OFFICE"].includes(item.roles?.name))) {
-      return json({ error: "INSUFFICIENT_ROLE" }, 403);
+    const { error: officeAccessError } = await callerClient.rpc("main_office_get_directory");
+    if (officeAccessError) {
+      const message = String(officeAccessError.message ?? "");
+      const denied = /MAIN_OFFICE_ACCESS_REQUIRED|AUTH_REQUIRED|permission denied|42501|28000/i.test(message);
+      return json({ error: denied ? "INSUFFICIENT_ROLE" : "AUTHORIZATION_CHECK_FAILED" }, denied ? 403 : 500);
     }
 
     const body = await req.json();
@@ -52,7 +48,7 @@ Deno.serve(async (req: Request) => {
     if (existing) return json({ error: "USERNAME_ALREADY_EXISTS" }, 409);
 
     const { data: branchOffices, error: officeError } = await admin.from("offices")
-      .select("office_id").eq("office_type", "BRANCH").eq("is_active", true).limit(2);
+      .select("office_id").eq("office_code", "RAS_SEDR").eq("office_type", "BRANCH").eq("is_active", true).limit(2);
     if (officeError) throw officeError;
     if (!branchOffices || branchOffices.length !== 1) return json({ error: "EXPECTED_ONE_ACTIVE_BRANCH_OFFICE" }, 409);
 
@@ -70,19 +66,11 @@ Deno.serve(async (req: Request) => {
     if (!created.user) return json({ error: "ACCOUNT_CREATION_FAILED" }, 500);
     createdAuthUserId = created.user.id;
 
-    const { data: branchRole, error: roleError } = await admin.from("roles").select("role_id").eq("name", "BRANCH").maybeSingle();
-    if (roleError) throw roleError;
-    if (!branchRole) throw new Error("BRANCH_ROLE_NOT_CONFIGURED");
     const { data: profile, error: profileError } = await admin.from("app_users").insert({
-      auth_user_id: created.user.id, display_name: displayName, username, phone,
+      auth_user_id: created.user.id, display_name: displayName, username, phone, role: "BRANCH",
       office_id: branchOffices[0].office_id, is_active: true,
     }).select("user_id").single();
     if (profileError) throw profileError;
-    const { error: linkError } = await admin.from("user_roles").insert({ user_id: profile.user_id, role_id: branchRole.role_id });
-    if (linkError) {
-      await admin.from("app_users").delete().eq("user_id", profile.user_id);
-      throw linkError;
-    }
     return json({ success: true, username, display_name: displayName, office_id: branchOffices[0].office_id });
   } catch (error) {
     if (createdAuthUserId) {

@@ -1,693 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Building2, Mountain, Users, UserX, Truck, ClipboardCheck, UserRound, ClipboardList, Clock3, RefreshCw, AlertTriangle, Pencil, UserMinus, Phone, MoreHorizontal } from 'lucide-react';
-import { getLiveSnapshot, LiveSnapshot, liveName } from '../services/liveData';
-import { supabase } from '../lib/supabase';
-import { AddVehicleForm } from './AddVehicleForm';
-
-type ScreenKey = 'factories' | 'quarries' | 'drivers' | 'vehicles' | 'owners' | 'waiting' | 'loads' | 'actual';
-type Row = Record<string, any>;
-const tabs: { key: ScreenKey; label: string; icon: React.ElementType }[] = [
-  { key: 'factories', label: 'Ø§Ù„Ù…ØµØ§Ù†Ø¹ ÙˆØ§Ù„Ø¹Ù…Ù„Ø§Ø¡', icon: Building2 },
-  { key: 'quarries', label: 'Ø§Ù„Ù…Ø­Ø§Ø¬Ø± ÙˆØ§Ù„Ù…ÙˆØ±Ø¯ÙˆÙ†', icon: Mountain },
-  { key: 'drivers', label: 'Ø§Ù„Ø³Ø§Ø¦Ù‚ÙˆÙ†', icon: Users },
-  { key: 'vehicles', label: 'Ø£Ø³Ø·ÙˆÙ„ Ø§Ù„Ø³ÙŠØ§Ø±Ø§Øª', icon: Truck },
-  { key: 'owners', label: 'Ù…Ù„Ø§Ùƒ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª', icon: UserRound },
-  { key: 'waiting', label: 'Ù‚Ø§Ø¦Ù…Ø© Ø§Ù†ØªØ¸Ø§Ø± Ø±Ø£Ø³ Ø³Ø¯Ø±', icon: Clock3 },
-  { key: 'loads', label: 'Ø£ÙˆØ§Ù…Ø± Ø§Ù„ØªØ­Ù…ÙŠÙ„', icon: ClipboardList },
-  { key: 'actual', label: 'Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙØ¹Ù„ÙŠ', icon: ClipboardCheck },
-];
-
-const sectionPalette: Record<ScreenKey, { selected: string; accent: string; border: string; action: string; row: string; wash: string }> = {
-  factories: { selected: 'border-sky-600 bg-sky-600', accent: 'text-sky-700', border: 'border-sky-200', action: 'bg-sky-600 hover:bg-sky-700', row: 'border-r-sky-400', wash: 'bg-sky-50/50' },
-  quarries: { selected: 'border-amber-600 bg-amber-600', accent: 'text-amber-700', border: 'border-amber-200', action: 'bg-amber-600 hover:bg-amber-700', row: 'border-r-amber-400', wash: 'bg-amber-50/50' },
-  drivers: { selected: 'border-red-600 bg-red-600', accent: 'text-red-700', border: 'border-red-200', action: 'bg-red-600 hover:bg-red-700', row: 'border-r-red-400', wash: 'bg-red-50/50' },
-  vehicles: { selected: 'border-blue-600 bg-blue-600', accent: 'text-blue-700', border: 'border-blue-200', action: 'bg-blue-600 hover:bg-blue-700', row: 'border-r-blue-400', wash: 'bg-blue-50/50' },
-  owners: { selected: 'border-teal-600 bg-teal-600', accent: 'text-teal-700', border: 'border-teal-200', action: 'bg-teal-600 hover:bg-teal-700', row: 'border-r-teal-400', wash: 'bg-teal-50/50' },
-  waiting: { selected: 'border-violet-600 bg-violet-600', accent: 'text-violet-700', border: 'border-violet-200', action: 'bg-violet-600 hover:bg-violet-700', row: 'border-r-violet-400', wash: 'bg-violet-50/50' },
-  loads: { selected: 'border-orange-600 bg-orange-600', accent: 'text-orange-700', border: 'border-orange-200', action: 'bg-orange-600 hover:bg-orange-700', row: 'border-r-orange-400', wash: 'bg-orange-50/50' },
-  actual: { selected: 'border-emerald-600 bg-emerald-600', accent: 'text-emerald-700', border: 'border-emerald-200', action: 'bg-emerald-600 hover:bg-emerald-700', row: 'border-r-emerald-400', wash: 'bg-emerald-50/50' },
-};
-
-function rowTitle(row: Row, key: ScreenKey) {
-  if (key === 'factories') return liveName(row);
-  if (key === 'quarries') return liveName(row);
-  if (key === 'drivers') return row.name ?? row.driver_name ?? 'Ø³Ø§Ø¦Ù‚ Ø¨Ø¯ÙˆÙ† Ø§Ø³Ù…';
-  if (key === 'vehicles') return row.plate_number ?? row.vehicle_code ?? 'Ø¹Ø±Ø¨ÙŠØ© Ø¨Ø¯ÙˆÙ† Ù„ÙˆØ­Ø©';
-  if (key === 'owners') return row.name ?? 'Ù…Ø§Ù„Ùƒ Ø¨Ø¯ÙˆÙ† Ø§Ø³Ù…';
-  if (key === 'waiting') return row.plate_number ?? row.driver_name ?? 'Ø¹Ù†ØµØ± Ø§Ù†ØªØ¸Ø§Ø±';
-  if (key === 'loads') return liveName(row, row.load_order_id ?? 'Ø£Ù…Ø± ØªØ­Ù…ÙŠÙ„');
-  return row.trip_code ?? row.ticket_number ?? row.record_number ?? row.actual_loading_record_id ?? 'Ø³Ø¬Ù„ ØªØ­Ù…ÙŠÙ„ ÙØ¹Ù„ÙŠ';
-}
-function rowDetails(row: Row, key: ScreenKey) {
-  if (key === 'factories') return [row.address, row.phone, row.is_active === false ? 'ØºÙŠØ± Ù†Ø´Ø·' : 'Ù†Ø´Ø·'].filter(Boolean).join(' Â· ');
-  if (key === 'quarries') return [row.address, row.phone, row.is_active === false ? 'ØºÙŠØ± Ù†Ø´Ø·' : 'Ù†Ø´Ø·'].filter(Boolean).join(' Â· ');
-  if (key === 'drivers') return [row.phone, row.is_active === false ? 'ØºÙŠØ± Ù†Ø´Ø·' : 'Ù†Ø´Ø·'].filter(Boolean).join(' Â· ');
-  if (key === 'vehicles') return [row.owner_name ? 'Ø§Ù„Ù…Ø§Ù„Ùƒ: ' + row.owner_name : '', Array.isArray(row.assigned_drivers) && row.assigned_drivers.length ? 'Ø§Ù„Ø³Ø§Ø¦Ù‚ÙˆÙ†: ' + row.assigned_drivers.map((driver: Row) => driver.name).filter(Boolean).join('ØŒ ') : 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø³Ø§Ø¦Ù‚ÙˆÙ† Ù…Ø±ØªØ¨Ø·ÙˆÙ†', row.truck_type ?? row.vehicle_type, row.capacity_tons ? row.capacity_tons + ' Ø·Ù†' : '', row.is_active === false ? 'ØºÙŠØ± Ù†Ø´Ø·Ø©' : 'Ù†Ø´Ø·Ø©'].filter(Boolean).join(' Â· ');
-  if (key === 'owners') return [row.phone, row.is_active === false ? 'ØºÙŠØ± Ù†Ø´Ø·' : 'Ù†Ø´Ø·'].filter(Boolean).join(' Â· ');
-  if (key === 'waiting') return [row.driver_name, row.status === 'WAITING' ? 'ÙÙŠ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±' : row.status === 'ASSIGNED' ? 'ØªÙ… Ø§Ù„ØªØ®ØµÙŠØµ' : row.status, row.selected_factory_name && row.selected_quarry_name ? `Ø§Ø®ØªØ§Ø±: ${row.selected_factory_name} â† ${row.selected_quarry_name}` : '', row.choice_status === 'CHOSEN' ? 'Ø§Ù„Ø§Ø®ØªÙŠØ§Ø± Ù…Ø³Ø¬Ù„ â€” ÙÙŠ Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„ØªÙˆØ²ÙŠØ¹' : row.choice_status === 'ALLOCATED' ? 'ØªÙ… Ø§Ù„ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ' : row.choice_status === 'NOT_ALLOCATED' ? 'Ù„Ù… ÙŠØªÙ… ØªØ®ØµÙŠØµ Ø§Ø®ØªÙŠØ§Ø±Ùƒ' : '', row.trip_code ? `ÙƒÙˆØ¯ Ø§Ù„Ù†Ù‚Ù„Ø©: ${row.trip_code}` : '', row.arrived_at ? new Date(row.arrived_at).toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' }) : ''].filter(Boolean).join(' Â· ');
-  if (key === 'loads') return [row.status, row.requested_quantity ? 'Ø§Ù„Ù…Ø·Ù„ÙˆØ¨: ' + row.requested_quantity : '', row.created_at ? new Date(row.created_at).toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' }) : ''].filter(Boolean).join(' Â· ');
-  return [row.loading_sequence_date || row.load_date, row.daily_load_number ? 'ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙŠÙˆÙ… #' + row.daily_load_number : '', row.ticket_number ? 'ØªØ°ÙƒØ±Ø©: ' + row.ticket_number : '', row.actual_weight != null ? 'Ø§Ù„ÙˆØ²Ù†: ' + row.actual_weight + ' Ø·Ù†' : 'Ø§Ù„ÙˆØ²Ù† Ù„Ù… ÙŠÙØ³Ø¬Ù„', row.created_at ? new Date(row.created_at).toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' }) : ''].filter(Boolean).join(' Â· ');
-}
-
-export const OfficeDirectoryScreen: React.FC<{ initialSection?: ScreenKey; showSectionTabs?: boolean }> = ({ initialSection = 'factories', showSectionTabs = true }) => {
-  const [active, setActive] = useState<ScreenKey>(initialSection);
-  useEffect(() => { setActive(initialSection); }, [initialSection]);
-  useEffect(() => { setShowMasterForm(false); setEditingMasterEntry(null); setEditingOwner(null); }, [active]);
-  const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
-  const [waiting, setWaiting] = useState<Row[]>([]);
-  const [waitingWindow, setWaitingWindow] = useState<Row | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [showDriverForm, setShowDriverForm] = useState(false);
-  const [showVehicleForm, setShowVehicleForm] = useState(false);
-  const [driverName, setDriverName] = useState('');
-  const [driverPhone, setDriverPhone] = useState('');
-  const [driverTemporaryPassword, setDriverTemporaryPassword] = useState('');
-  const [driverTemporaryPasswordConfirmation, setDriverTemporaryPasswordConfirmation] = useState('');
-  const [pendingAccount, setPendingAccount] = useState<{ driverId: string; name: string } | null>(null);
-  const [retryingInvite, setRetryingInvite] = useState(false);
-  const [passwordResetDriver, setPasswordResetDriver] = useState<Row | null>(null);
-  const [newDriverPassword, setNewDriverPassword] = useState('');
-  const [confirmDriverPassword, setConfirmDriverPassword] = useState('');
-  const [resettingPassword, setResettingPassword] = useState(false);
-  const [driverCode, setDriverCode] = useState('');
-  const [vehicleSearch, setVehicleSearch] = useState('');
-  const [driverSearch, setDriverSearch] = useState('');
-  const [entitySearch, setEntitySearch] = useState('');
-  const [showMasterForm, setShowMasterForm] = useState(false);
-  const [editingMasterEntry, setEditingMasterEntry] = useState<Row | null>(null);
-  const [masterForm, setMasterForm] = useState({ name: '', code: '', address: '', phone: '', is_active: true });
-  const [savingMaster, setSavingMaster] = useState(false);
-  const [selectedVehicleId, setSelectedVehicleId] = useState('');
-  const [availableVehicles, setAvailableVehicles] = useState<Row[]>([]);
-  const [ownerDirectory, setOwnerDirectory] = useState<Row[]>([]);
-  const [editingOwner, setEditingOwner] = useState<Row | null>(null);
-  const [ownerEditName, setOwnerEditName] = useState('');
-  const [ownerEditPhone, setOwnerEditPhone] = useState('');
-  const [editingDriver, setEditingDriver] = useState<Row | null>(null);
-  const [driverEditName, setDriverEditName] = useState('');
-  const [driverEditPhone, setDriverEditPhone] = useState('');
-  const [driverEditCode, setDriverEditCode] = useState('');
-  const [driverEditVehicleId, setDriverEditVehicleId] = useState('');
-  const [driverEditVehicles, setDriverEditVehicles] = useState<Row[]>([]);
-  const [driverEditOptionsLoaded, setDriverEditOptionsLoaded] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState<Row | null>(null);
-  const [vehicleEditPlate, setVehicleEditPlate] = useState('');
-  const [vehicleEditCode, setVehicleEditCode] = useState('');
-  const [vehicleEditOwnerId, setVehicleEditOwnerId] = useState('');
-  const [vehicleOwnerMode, setVehicleOwnerMode] = useState<'existing' | 'new'>('existing');
-  const [newOwnerName, setNewOwnerName] = useState('');
-  const [newOwnerPhone, setNewOwnerPhone] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [savingDriver, setSavingDriver] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [data, directoryResult, waitingResult] = await Promise.all([
-        getLiveSnapshot(),
-        supabase.rpc('main_office_get_directory'),
-        supabase.rpc('get_office_waiting_list'),
-      ]);
-      if (directoryResult.error) throw directoryResult.error;
-      if (waitingResult.error) throw waitingResult.error;
-      let liveData = data;
-      if (active === 'actual') {
-        const reportsResult = await supabase.rpc('get_vehicle_owner_reports', { p_from: null, p_to: null });
-        if (reportsResult.error) throw reportsResult.error;
-        liveData = {
-          ...data,
-          actual_loading_records: Array.isArray(reportsResult.data?.trips) ? reportsResult.data.trips : [],
-        };
-      }
-      const directory = directoryResult.data ?? {};
-      const factories = (directory.factories ?? []).map((r: Row) => ({ factory_id: r.id, code: r.code, factory_code: r.code, name: r.name, notes: r.notes, is_active: r.is_active }));
-      const quarries = (directory.quarries ?? []).map((r: Row) => ({ quarry_id: r.id, code: r.code, quarry_code: r.code, name: r.name, notes: r.notes, is_active: r.is_active, latitude: r.latitude, longitude: r.longitude }));
-      const drivers = (directory.drivers ?? []).map((r: Row) => ({ driver_id: r.id, driver_code: r.code, code: r.code, name: r.name, phone: r.phone, office_id: r.office_id, is_active: r.is_active, vehicle_id: r.vehicle_id, vehicle_code: r.vehicle_code, plate_number: r.plate_number }));
-      const ownerById = new Map<string, Row>((directory.owners ?? []).map((owner: Row) => [String(owner.id), owner] as [string, Row]));
-      const vehicles = (directory.vehicles ?? []).map((r: Row) => { const linkedOwner = ownerById.get(r.owner_id); return ({ vehicle_id: r.id, vehicle_code: r.code, plate_number: r.plate_number, owner_id: r.owner_id, owner_name: r.owner_name ?? linkedOwner?.name ?? null, owner_code: r.owner_code ?? linkedOwner?.code ?? null, owner_phone: r.owner_phone ?? linkedOwner?.phone ?? null, office_id: r.office_id, is_active: r.is_active, assigned_drivers: Array.isArray(r.assigned_drivers) ? r.assigned_drivers : (r.assigned_driver_id ? [{ id: r.assigned_driver_id, name: r.assigned_driver_name }] : []) }); });
-      setSnapshot({ ...liveData, factories, quarries, drivers, vehicles });
-      setWaiting(Array.isArray(waitingResult.data?.entries) ? waitingResult.data.entries : []);
-      setWaitingWindow(waitingResult.data?.selection_window ?? null);
-      setAvailableVehicles(vehicles.filter((v: Row) => v.is_active !== false));
-      setOwnerDirectory((directory.owners ?? []).map((r: Row) => ({ owner_id: r.id, owner_code: r.code, name: r.name, phone: r.phone, is_active: r.is_active })));
-    } catch (e: any) {
-      setError(e?.message || 'ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø¯Ù„ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ÙƒØªØ¨.');
-    } finally {
-      setLoading(false);
-    }
-  }, [active]);
-  useEffect(() => { void load(); }, [load]);
-
-  const refreshWaitingQueue = useCallback(async () => {
-    const { data, error: waitingError } = await supabase.rpc('get_office_waiting_list');
-    if (waitingError) {
-      setError(waitingError.message || 'ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±.');
-      return;
-    }
-    setWaiting(Array.isArray(data?.entries) ? data.entries : []);
-    setWaitingWindow(data?.selection_window ?? null);
-  }, []);
-
-  useEffect(() => {
-    if (active !== 'waiting') return;
-    void refreshWaitingQueue();
-    const timer = window.setInterval(() => void refreshWaitingQueue(), 10000);
-    return () => window.clearInterval(timer);
-  }, [active, refreshWaitingQueue]);
-
-  async function addDirectoryEntity(kind: 'factories' | 'quarries') {
-    const isFactory = kind === 'factories';
-    const label = isFactory ? 'Ø§Ù„Ø¹Ù…ÙŠÙ„ / Ø§Ù„Ù…ØµÙ†Ø¹' : 'Ø§Ù„Ù…Ø­Ø¬Ø±';
-    const name = window.prompt(`Ø§ÙƒØªØ¨ Ø§Ø³Ù… ${label}:`);
-    if (!name?.trim()) return;
-    const code = window.prompt(`Ø§ÙƒØªØ¨ ÙƒÙˆØ¯ ${label} (Ù…Ø·Ù„ÙˆØ¨ ÙˆÙØ±ÙŠØ¯):`) || '';
-    setError('');
-    setSuccess('');
-    setSavingEdit(true);
-    try {
-      if (!code.trim()) throw new Error('Ù„Ø§Ø²Ù… ØªØ¯Ø®Ù„ ÙƒÙˆØ¯ ÙˆØ§Ø¶Ø­ ÙˆÙØ±ÙŠØ¯ Ù„Ù„Ø³Ø¬Ù„.');
-      const { data, error: insertError } = await supabase.rpc('main_office_upsert_directory', {
-        p_entity_type: kind === 'factories' ? 'FACTORY' : 'QUARRY',
-        p_name: name.trim(),
-        p_code: code.trim(),
-        p_notes: null,
-        p_is_active: true,
-      });
-      if (insertError) throw insertError;
-      if (!data?.id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø³Ø¬Ù„.');
-      setSuccess(`ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© ${label} Ø¨Ù†Ø¬Ø§Ø­.`);
-      setEntitySearch('');
-      await load();
-    } catch (e: any) {
-      setError(e?.message || `ØªØ¹Ø°Ø±Øª Ø¥Ø¶Ø§ÙØ© ${label}. Ø±Ø§Ø¬Ø¹ ØµÙ„Ø§Ø­ÙŠØ§Øª Ø­Ø³Ø§Ø¨ Ø§Ù„Ù…ÙƒØªØ¨ ÙˆØ³ÙŠØ§Ø³Ø© Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª.`);
-    } finally {
-      setSavingEdit(false);
-    }
-  }
-
-  async function setMasterDirectoryActive(row: Row) {
-    const isFactory = active === 'factories';
-    const entityType = isFactory ? 'FACTORY' : 'QUARRY';
-    const entityId = isFactory ? row.factory_id : row.quarry_id;
-    const label = isFactory ? 'Ø§Ù„Ø¹Ù…ÙŠÙ„ / Ø§Ù„Ù…ØµÙ†Ø¹' : 'Ø§Ù„Ù…Ø­Ø¬Ø± / Ø§Ù„Ù…ÙˆØ±Ø¯';
-    const nextActive = row.is_active === false;
-    if (!entityId) { setError('ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ø³Ø¬Ù„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨. Ø­Ø¯Ù‘Ø« Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© ÙˆØ­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.'); return; }
-    if (!window.confirm(nextActive
-      ? `ØªØ£ÙƒÙŠØ¯ Ø¥Ø¹Ø§Ø¯Ø© ØªÙØ¹ÙŠÙ„ ${label} ${liveName(row)}ØŸ`
-      : `ØªØ£ÙƒÙŠØ¯ Ø¥ÙŠÙ‚Ø§Ù ${label} ${liveName(row)}ØŸ Ø³ÙŠØ¸Ù„ Ù…Ø­ÙÙˆØ¸Ù‹Ø§ ÙÙŠ ØªØ§Ø±ÙŠØ® Ø§Ù„Ù†Ù‚Ù„Ø§Øª Ø§Ù„Ù‚Ø¯ÙŠÙ…Ø©ØŒ ÙˆÙ„Ù† ÙŠØ¸Ù‡Ø± Ø¶Ù…Ù† Ø§Ù„Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©.`)) return;
-    setError(''); setSuccess(''); setSavingEdit(true);
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_set_directory_active', {
-        p_entity_type: entityType, p_entity_id: entityId, p_is_active: nextActive,
-      });
-      if (rpcError) throw rpcError;
-      if (!data?.id || data.is_active !== nextActive) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ø³Ø¬Ù„.');
-      setSuccess(nextActive ? `ØªÙ… ØªÙØ¹ÙŠÙ„ ${label}.` : `ØªÙ… Ø¥ÙŠÙ‚Ø§Ù ${label} Ù…Ø¹ Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ø§Ù„Ø³Ø¬Ù„Ø§Øª Ø§Ù„ØªØ§Ø±ÙŠØ®ÙŠØ©.`);
-      await load();
-    } catch (e: any) {
-      const raw = String(e?.message || '');
-      const messages: Record<string, string> = {
-        ENTITY_NOT_FOUND: 'Ø§Ù„Ø³Ø¬Ù„ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯. Ø­Ø¯Ù‘Ø« Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© ÙˆØ­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-        MAIN_OFFICE_ACCESS_REQUIRED: 'ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ø³Ø¬Ù„ Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-        AUTH_REQUIRED: 'Ø§Ù†ØªÙ‡Øª Ø¬Ù„Ø³Ø© Ø§Ù„Ù…ÙƒØªØ¨. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-      };
-      const key = Object.keys(messages).find(code => raw.includes(code));
-      setError(key ? messages[key] : (raw || 'ØªØ¹Ø°Ø± ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ø³Ø¬Ù„.'));
-    } finally { setSavingEdit(false); }
-  }
-
-  async function setOwnerActive(row: Row) {
-    const nextActive = row.is_active === false;
-    if (!nextActive && !window.confirm(`ØªØ£ÙƒÙŠØ¯ Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù…Ø§Ù„Ùƒ ${row.name}ØŸ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¥ÙŠÙ‚Ø§ÙÙ‡ Ø·Ø§Ù„Ù…Ø§ Ø¹Ù†Ø¯Ù‡ Ø¹Ø±Ø¨ÙŠØ§Øª Ù†Ø´Ø·Ø©.`)) return;
-    setError(''); setSuccess(''); setSavingEdit(true);
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_set_directory_active', {
-        p_entity_type: 'OWNER', p_entity_id: row.owner_id, p_is_active: nextActive,
-      });
-      if (rpcError) throw rpcError;
-      if (!data?.id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø§Ù„Ùƒ.');
-      setSuccess(nextActive ? 'ØªÙ… ØªÙØ¹ÙŠÙ„ Ø§Ù„Ù…Ø§Ù„Ùƒ.' : 'ØªÙ… Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù…Ø§Ù„Ùƒ.');
-      await load();
-    } catch (e: any) {
-      const raw = String(e?.message || '');
-      const messages: Record<string,string> = {
-        OWNER_HAS_ACTIVE_VEHICLES: 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù…Ø§Ù„Ùƒ Ù‚Ø¨Ù„ Ø¥ÙŠÙ‚Ø§Ù ÙƒÙ„ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª Ø§Ù„ØªØ§Ø¨Ø¹Ø© Ù„Ù‡.',
-        ENTITY_NOT_FOUND: 'Ø§Ù„Ù…Ø§Ù„Ùƒ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯.',
-        MAIN_OFFICE_ACCESS_REQUIRED: 'Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-      };
-      const key = Object.keys(messages).find(code => raw.includes(code));
-      setError(Object.entries(messages).find(([code]) => raw.includes(code))?.[1] ?? (raw || 'ØªØ¹Ø°Ø± ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø§Ù„Ùƒ.'));
-    } finally { setSavingEdit(false); }
-  }
-
-  function beginOwnerEdit(row: Row) {
-    setEditingOwner(row);
-    setOwnerEditName(String(row.name ?? ''));
-    setOwnerEditPhone(String(row.phone ?? ''));
-    setError(''); setSuccess('');
-  }
-
-  async function saveOwnerEdit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!editingOwner) return;
-    if (!ownerEditName.trim()) { setError('Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ù„Ùƒ Ù…Ø·Ù„ÙˆØ¨.'); return; }
-    setError(''); setSuccess(''); setSavingEdit(true);
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_update_vehicle_owner', {
-        p_owner_id: editingOwner.owner_id,
-        p_name: ownerEditName.trim(),
-        p_phone: ownerEditPhone.trim() || null,
-        p_notes: editingOwner.notes ?? null,
-      });
-      if (rpcError) throw rpcError;
-      if (!data?.success || data?.owner_id !== editingOwner.owner_id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø§Ù„Ùƒ.');
-      setEditingOwner(null);
-      setSuccess('ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø§Ù„Ùƒ Ù…Ø¹ Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨ÙƒÙˆØ¯ Ø§Ù„Ù…Ø§Ù„Ùƒ ÙˆØ±Ø¨Ø·Ù‡ Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª Ø§Ù„Ø­Ø§Ù„ÙŠØ©.');
-      await load();
-    } catch (e: any) {
-      const raw = String(e?.message || '');
-      const messages: Record<string, string> = {
-        OWNER_ID_AND_NAME_REQUIRED: 'Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ù„Ùƒ Ù…Ø·Ù„ÙˆØ¨.',
-        OWNER_NOT_FOUND: 'Ø§Ù„Ù…Ø§Ù„Ùƒ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯. Ø­Ø¯Ù‘Ø« Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© ÙˆØ­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-        MAIN_OFFICE_ACCESS_REQUIRED: 'ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø§Ù„Ùƒ Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-        AUTH_REQUIRED: 'Ø§Ù†ØªÙ‡Øª Ø¬Ù„Ø³Ø© Ø§Ù„Ù…ÙƒØªØ¨. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-      };
-      const key = Object.keys(messages).find(code => raw.includes(code));
-      setError(key ? messages[key] : raw || 'ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø§Ù„Ùƒ.');
-    } finally { setSavingEdit(false); }
-  }
-
-  async function addVehicleOwner() {
-    const name = window.prompt('Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ù…Ø§Ù„Ùƒ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©:');
-    if (!name?.trim()) return;
-    const phone = window.prompt('Ø±Ù‚Ù… Ù…ÙˆØ¨Ø§ÙŠÙ„ Ø§Ù„Ù…Ø§Ù„Ùƒ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ):') || '';
-    setError(''); setSuccess(''); setSavingEdit(true);
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_create_vehicle_owner', {
-        p_name: name.trim(), p_phone: phone.trim() || null, p_notes: null,
-      });
-      if (rpcError) throw rpcError;
-      if (!data?.success || !data?.owner_id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ø§Ù„Ùƒ.');
-      setSuccess(`ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ø§Ù„Ùƒ ${name.trim()} Ø¨Ù†Ø¬Ø§Ø­.`);
-      await load();
-    } catch (e: any) {
-      setError(e?.message || 'ØªØ¹Ø°Ø±Øª Ø¥Ø¶Ø§ÙØ© Ù…Ø§Ù„Ùƒ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.');
-    } finally { setSavingEdit(false); }
-  }
-
-  async function removeWaitingEntry(row: Row) {
-    if (!row.entry_id || row.status !== 'WAITING') return;
-    if (!window.confirm(`Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚ ${row.driver_name || ''} Ù…Ù† Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±ØŸ`)) return;
-    setError(''); setSuccess(''); setSavingEdit(true);
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_remove_waiting_entry', { p_entry_id: row.entry_id });
-      if (rpcError) throw rpcError;
-      if (!data?.success || data?.status !== 'LEFT') throw new Error('Ù„Ù… ÙŠØ¤ÙƒØ¯ Ø§Ù„Ù†Ø¸Ø§Ù… Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…Ù† Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±.');
-      setSuccess(`ØªÙ…Øª Ø¥Ø²Ø§Ù„Ø© ${row.driver_name || 'Ø§Ù„Ø³Ø§Ø¦Ù‚'} Ù…Ù† Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù…Ø¹ Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ø§Ù„Ø³Ø¬Ù„.`);
-      await load();
-    } catch (e: any) {
-      const raw = String(e?.message || '');
-      if (raw.includes('WAITING_ENTRY_NOT_ACTIVE')) setError('Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù„Ù… ÙŠØ¹Ø¯ ÙÙŠ Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ù†Ø´Ø·Ø©. Ø­Ø¯Ù‘Ø« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª.');
-      else setError(raw || 'ØªØ¹Ø°Ø± Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…Ù† Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±.');
-    } finally { setSavingEdit(false); }
-  }
-  async function beginDriverEdit(row: Row) {
-    setEditingDriver(row);
-    setDriverEditName(String(row.name ?? row.driver_name ?? ''));
-    setDriverEditPhone(String(row.phone ?? ''));
-    setDriverEditCode(String(row.driver_code ?? ''));
-    setDriverEditVehicleId(String(row.vehicle_id ?? ''));
-    setDriverEditVehicles((snapshot?.vehicles ?? []).filter((vehicle: Row) => vehicle.is_active !== false));
-    setDriverEditOptionsLoaded(true);
-    setError(''); setSuccess('');
-  }
-
-  function beginVehicleEdit(row: Row) {
-    setError(''); setSuccess('');
-    setEditingVehicle(row);
-    setVehicleEditPlate(String(row.plate_number ?? ''));
-    setVehicleEditCode(String(row.vehicle_code ?? ''));
-    setVehicleEditOwnerId(String(row.owner_id ?? ''));
-    setVehicleOwnerMode('existing');
-    setNewOwnerName(''); setNewOwnerPhone('');
-  }
-
-  async function deactivateDriver(row: Row) {
-    const name = String(row.name ?? row.driver_name ?? 'Ø§Ù„Ø³Ø§Ø¦Ù‚');
-    const hasActiveBooking = (snapshot?.bookings ?? []).some((booking: Row) =>
-      String(booking.driver_id) === String(row.driver_id) &&
-      ['ASSIGNED', 'ARRIVED', 'LOADING', 'LOADED', 'IN_TRANSIT'].includes(String(booking.status).toUpperCase())
-    );
-    if (hasActiveBooking) { setError('Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù„Ø£Ù† Ø¹Ù„ÙŠÙ‡ Ù†Ù‚Ù„Ø© Ù†Ø´Ø·Ø©. Ø£Ù†Ù‡Ù Ø§Ù„Ù†Ù‚Ù„Ø© Ø£Ùˆ Ø£Ù„ØºÙ‡Ø§ Ø£ÙˆÙ„Ù‹Ø§.'); return; }
-    if (!window.confirm('ØªØ£ÙƒÙŠØ¯ Ø¥ÙŠÙ‚Ø§Ù ' + name + 'ØŸ Ø³ÙŠØªÙ… Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨ÙƒÙ„ Ø³Ø¬Ù„Ø§Øª Ø§Ù„ØªØ­Ù…ÙŠÙ„ ÙˆØ§Ù„Ø±Ø¨Ø· Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©.')) return;
-    setError(''); setSuccess(''); setSavingEdit(true);
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_set_directory_active', { p_entity_type: 'DRIVER', p_entity_id: row.driver_id, p_is_active: false });
-      if (rpcError) throw rpcError; if (!data?.id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-      setEditingDriver(null); setSuccess('ØªÙ… Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…Ø¹ Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ø§Ù„Ø³Ø¬Ù„Ø§Øª Ø§Ù„ØªØ§Ø±ÙŠØ®ÙŠØ©.'); await load();
-    } catch (e: any) {
-      const raw = String(e?.message || '');
-      const messages: Record<string,string> = { AUTH_REQUIRED: 'Ø§Ù†ØªÙ‡Øª Ø¬Ù„Ø³Ø© Ø§Ù„Ù…ÙƒØªØ¨. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.', MAIN_OFFICE_ACCESS_REQUIRED: 'Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.', DRIVER_NOT_FOUND: 'Ø§Ù„Ø³Ø§Ø¦Ù‚ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯.', DRIVER_HAS_ACTIVE_BOOKING: 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù„Ø£Ù† Ø¹Ù„ÙŠÙ‡ Ù†Ù‚Ù„Ø© Ù†Ø´Ø·Ø©.' };
-      const key = Object.keys(messages).find(code => raw.includes(code)); setError(key ? messages[key] : raw || 'ØªØ¹Ø°Ø± Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-    } finally { setSavingEdit(false); }
-  }
-
-  async function saveDriverEdit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!editingDriver) return;
-    setSavingEdit(true); setError(''); setSuccess('');
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_update_driver', {
-        p_driver_id: editingDriver.driver_id, p_name: driverEditName.trim(),
-        p_phone: driverEditPhone.trim(), p_driver_code: driverEditCode.trim() || null, p_vehicle_id: driverEditVehicleId || null,
-      });
-      if (rpcError) throw rpcError;
-      if (!data?.success) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-      setEditingDriver(null); setSuccess('ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚ ÙˆØ±Ø¨Ø· Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø¨Ù‡.'); await load();
-    } catch (e: any) {
-      const raw=String(e?.message||'');
-      const messages: Record<string,string> = {
-        DRIVER_ID_NAME_PHONE_AND_VEHICLE_REQUIRED:'Ø£ÙƒÙ…Ù„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚ ÙˆØ§Ø®ØªØ§Ø± Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.',
-        VEHICLE_NOT_AVAILABLE:'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ØºÙŠØ± Ù†Ø´Ø·Ø© Ø£Ùˆ ØºÙŠØ± Ù…ØªØ§Ø­Ø© Ù„Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù….',
-        VEHICLE_NOT_AVAILABLE_IN_TARGET_BRANCH:'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ù„ÙŠØ³Øª Ø¶Ù…Ù† Ø£Ø³Ø·ÙˆÙ„ Ù…ÙƒØªØ¨ Ø±Ø£Ø³ Ø³Ø¯Ø±.',
-        RAS_SEDR_BRANCH_CONFIGURATION_INVALID:'Ø¥Ø¹Ø¯Ø§Ø¯ Ù…ÙƒØªØ¨ Ø±Ø£Ø³ Ø³Ø¯Ø± ØºÙŠØ± ØµØ­ÙŠØ­. Ø±Ø§Ø¬Ø¹ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ÙØ±Ø¹.',
-        DRIVER_HAS_ACTIVE_BOOKING:'Ù„Ø§ ÙŠÙ…ÙƒÙ† ØªØºÙŠÙŠØ± Ø±Ø¨Ø· Ø§Ù„Ø³Ø§Ø¦Ù‚ Ø£Ø«Ù†Ø§Ø¡ ÙˆØ¬ÙˆØ¯ Ù†Ù‚Ù„Ø© Ù†Ø´Ø·Ø© Ø¹Ù„ÙŠÙ‡. Ø£Ù†Ù‡Ù Ø§Ù„Ù†Ù‚Ù„Ø© Ø£Ùˆ Ø£Ù„ØºÙ‡Ø§ Ø£ÙˆÙ„Ù‹Ø§.',
-        VEHICLE_HAS_ACTIVE_BOOKING:'Ù„Ø§ ÙŠÙ…ÙƒÙ† ØªØºÙŠÙŠØ± Ø±Ø¨Ø· Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø£Ø«Ù†Ø§Ø¡ ÙˆØ¬ÙˆØ¯ Ù†Ù‚Ù„Ø© Ù†Ø´Ø·Ø© Ø¹Ù„ÙŠÙ‡Ø§.',
-        
-        DRIVER_NOT_ASSIGNED_TO_RAS_SEDR:'Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù„ÙŠØ³ ØªØ§Ø¨Ø¹Ù‹Ø§ Ù„Ù…ÙƒØªØ¨ Ø±Ø£Ø³ Ø³Ø¯Ø±.',
-        DRIVER_PHONE_INVALID:'Ø£Ø¯Ø®Ù„ Ø±Ù‚Ù… Ù…ÙˆØ¨Ø§ÙŠÙ„ Ù…ØµØ±ÙŠ ØµØ­ÙŠØ­Ù‹Ø§.',
-        DRIVER_PHONE_EXISTS:'Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ Ù…Ø³Ø¬Ù„ Ù„Ø³Ø§Ø¦Ù‚ Ø¢Ø®Ø±.',
-        DRIVER_NOT_FOUND:'Ø§Ù„Ø³Ø§Ø¦Ù‚ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯.',
-        DRIVER_LOGIN_PHONE_CHANGE_REQUIRES_ACCOUNT_UPDATE:'Ù„Ø§ ÙŠÙ…ÙƒÙ† ØªØºÙŠÙŠØ± Ø±Ù‚Ù… Ø¯Ø®ÙˆÙ„ Ø³Ø§Ø¦Ù‚ Ù…Ø±ØªØ¨Ø· Ø¨Ø­Ø³Ø§Ø¨ Ù…Ù† Ù‡Ù†Ø§. Ø§Ø³ØªØ®Ø¯Ù… ØªØ¯ÙÙ‚ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¢Ù…Ù†.',
-        DRIVER_CODE_EXISTS:'ÙƒÙˆØ¯ Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø§Ù„ÙØ¹Ù„.',
-        MAIN_OFFICE_ACCESS_REQUIRED:'ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-      };
-      const key=Object.keys(messages).find(code=>raw.includes(code)); setError(key?messages[key]:raw||'ØªØ¹Ø°Ø± ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-    } finally { setSavingEdit(false); }
-  }
-
-  async function saveVehicleEdit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!editingVehicle) return;
-    if (!vehicleEditOwnerId) { setError('Ø§Ø®ØªØ§Ø± Ù…Ø§Ù„ÙƒÙ‹Ø§ Ù…Ø³Ø¬Ù„Ù‹Ø§ ÙˆÙ†Ø´Ø·Ù‹Ø§ Ù„Ù„Ø¹Ø±Ø¨ÙŠØ©.'); return; }
-    setSavingEdit(true); setError(''); setSuccess('');
-    try {
-      const { data, error: rpcError } = await supabase.rpc('main_office_update_vehicle', {
-        p_vehicle_id: editingVehicle.vehicle_id, p_plate_number: vehicleEditPlate.trim(),
-        p_owner_id: vehicleEditOwnerId, p_notes: editingVehicle.notes ?? null,
-      });
-      if (rpcError) throw rpcError;
-      if (!data?.success) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.');
-      setEditingVehicle(null); setSuccess('ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ÙˆÙ…Ø§Ù„ÙƒÙ‡Ø§.'); await load();
-    } catch (e: any) {
-      const raw=String(e?.message||'');
-      const messages: Record<string,string> = {
-        VEHICLE_ID_PLATE_OWNER_REQUIRED:'Ø£ÙƒÙ…Ù„ Ø±Ù‚Ù… Ø§Ù„Ù„ÙˆØ­Ø© ÙˆØ§Ø®ØªØ§Ø± Ø§Ù„Ù…Ø§Ù„Ùƒ.',
-        VEHICLE_HAS_ACTIVE_BOOKING:'Ù„Ø§ ÙŠÙ…ÙƒÙ† ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø£Ø«Ù†Ø§Ø¡ ÙˆØ¬ÙˆØ¯ Ù†Ù‚Ù„Ø© Ù†Ø´Ø·Ø© Ø¹Ù„ÙŠÙ‡Ø§.',
-        OWNER_NOT_ACTIVE:'Ø§Ù„Ù…Ø§Ù„Ùƒ Ø§Ù„Ù…Ø­Ø¯Ø¯ ØºÙŠØ± Ù†Ø´Ø·.',
-        VEHICLE_PLATE_EXISTS:'Ø±Ù‚Ù… Ø§Ù„Ù„ÙˆØ­Ø© Ù…Ø³Ø¬Ù„ Ù„Ø¹Ø±Ø¨ÙŠØ© Ø£Ø®Ø±Ù‰.',
-        VEHICLE_NOT_FOUND:'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯Ø©.',
-        MAIN_OFFICE_ACCESS_REQUIRED:'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-      };
-      const key=Object.keys(messages).find(code=>raw.includes(code)); setError(key?messages[key]:raw||'ØªØ¹Ø°Ø± ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.');
-    } finally { setSavingEdit(false); }
-  }
-
-  async function createDriverAccount(driverId: string, temporaryPassword: string) {
-    const { data, error: invokeError } = await supabase.functions.invoke('create-driver-account', {
-      body: { driver_id: driverId, temporary_password: temporaryPassword },
-    });
-    if (invokeError) throw invokeError;
-    if (!data?.success) {
-      const code = String(data?.error ?? 'ACCOUNT_CREATION_FAILED');
-      const messages: Record<string, string> = {
-        AUTH_REQUIRED: 'Ø§Ù†ØªÙ‡Øª Ø¬Ù„Ø³Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„. Ø³Ø¬Ù‘Ù„ Ø¯Ø®ÙˆÙ„ Ø§Ù„Ù…ÙƒØªØ¨ Ù…Ø±Ø© ØªØ§Ù†ÙŠØ©.',
-        INSUFFICIENT_ROLE: 'Ø­Ø³Ø§Ø¨Ùƒ Ù…Ø´ Ø¹Ù†Ø¯Ù‡ ØµÙ„Ø§Ø­ÙŠØ© Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨Ø§Øª Ù„Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ†.',
-        PHONE_ALREADY_REGISTERED: 'Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ Ù…Ø±Ø¨ÙˆØ· Ø¨Ø­Ø³Ø§Ø¨ Ù…ÙˆØ¬ÙˆØ¯. Ø±Ø§Ø¬Ø¹ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù‚Ø¨Ù„ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©.',
-        DRIVER_ACCOUNT_ALREADY_LINKED: 'Ø§Ù„Ø³ÙˆØ§Ù‚ Ø¯Ù‡ Ù…Ø±Ø¨ÙˆØ· Ø¨Ø­Ø³Ø§Ø¨ Ø¨Ø§Ù„ÙØ¹Ù„.',
-        DRIVER_NOT_FOUND_OR_INACTIVE: 'Ø§Ù„Ø³ÙˆØ§Ù‚ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ ØºÙŠØ± Ù†Ø´Ø·.',
-        DRIVER_PHONE_INVALID: 'Ø±Ù‚Ù… Ù…ÙˆØ¨Ø§ÙŠÙ„ Ø§Ù„Ø³ÙˆØ§Ù‚ ØºÙŠØ± ØµØ§Ù„Ø­. Ø§Ø³ØªØ®Ø¯Ù… Ø±Ù‚Ù…Ù‹Ø§ Ù…ØµØ±ÙŠÙ‹Ø§ ØµØ­ÙŠØ­Ù‹Ø§.',
-        DRIVER_ID_REQUIRED: 'Ù…Ø¹Ø±Ù‘Ù Ø§Ù„Ø³ÙˆØ§Ù‚ Ù…Ø·Ù„ÙˆØ¨ Ù„Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨.',
-        TEMPORARY_PASSWORD_TOO_SHORT: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† 8 Ø£Ø­Ø±Ù.',
-        ACCOUNT_CREATION_FAILED: 'ØªØ¹Ø°Ø± Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¯Ø®ÙˆÙ„. ØªØ­Ù‚Ù‚ Ù…Ù† Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Supabase Auth.',
-        SERVER_CONFIGURATION_MISSING: 'ÙˆØ¸ÙŠÙØ© Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø­ØªØ§Ø¬Ø© Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Supabase Ø¹Ù„Ù‰ Ø§Ù„Ø®Ø§Ø¯Ù….',
-      };
-      throw new Error(messages[code] ?? 'ØªØ¹Ø°Ø± Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ù„Ø³ÙˆØ§Ù‚.');
-    }
-  }
-
-  async function retryDriverAccount() {
-    if (!pendingAccount) return;
-    setRetryingInvite(true);
-    setError('');
-    try {
-      await createDriverAccount(pendingAccount.driverId, driverTemporaryPassword);
-      setSuccess('ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø§Ù„Ø³Ø§Ø¦Ù‚. Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù‡Ùˆ Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ØŒ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù‡ÙŠ Ø§Ù„ØªÙŠ Ø­Ø¯Ø¯ØªÙ‡Ø§.');
-      setPendingAccount(null);
-      setDriverTemporaryPassword('');
-      setDriverTemporaryPasswordConfirmation('');
-    } catch (e: any) {
-      setError(e?.message || 'ØªØ¹Ø°Ø± Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-    } finally {
-      setRetryingInvite(false);
-    }
-  }
-
-  async function resetDriverPassword(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!passwordResetDriver) return;
-    setError('');
-    setSuccess('');
-    if (newDriverPassword.length < 8) {
-      setError('ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† 8 Ø£Ø­Ø±Ù.');
-      return;
-    }
-    if (newDriverPassword !== confirmDriverPassword) {
-      setError('ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± Ù…Ø·Ø§Ø¨Ù‚.');
-      return;
-    }
-    setResettingPassword(true);
-    try {
-      const { data, error: invokeError } = await supabase.functions.invoke('create-driver-account', {
-        body: { action: 'reset_password', driver_id: passwordResetDriver.driver_id, temporary_password: newDriverPassword },
-      });
-      if (invokeError) throw invokeError;
-      if (!data?.success) {
-        const code = String(data?.error ?? 'PASSWORD_RESET_FAILED');
-        const messages: Record<string, string> = {
-          AUTH_REQUIRED: 'Ø§Ù†ØªÙ‡Øª Ø¬Ù„Ø³Ø© Ø§Ù„Ù…ÙƒØªØ¨. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-          INSUFFICIENT_ROLE: 'Ø¥Ø¯Ø§Ø±Ø© ÙƒÙ„Ù…Ø§Øª Ø§Ù„Ù…Ø±ÙˆØ± Ù…ØªØ§Ø­Ø© Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-          DRIVER_NOT_FOUND_OR_INACTIVE: 'Ø§Ù„Ø³Ø§Ø¦Ù‚ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ ØºÙŠØ± Ù†Ø´Ø·.',
-          DRIVER_ACCOUNT_NOT_LINKED: 'Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù„ÙŠØ³ Ù„Ø¯ÙŠÙ‡ Ø­Ø³Ø§Ø¨ Ø¯Ø®ÙˆÙ„ Ù…Ø±ØªØ¨Ø·. Ø£Ù†Ø´Ø¦ Ø­Ø³Ø§Ø¨Ù‡ Ø£ÙˆÙ„Ù‹Ø§ Ù…Ù† Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ†.',
-          TEMPORARY_PASSWORD_TOO_SHORT: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† 8 Ø£Ø­Ø±Ù.',
-        };
-        throw new Error(messages[code] ?? 'ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-      }
-      setPasswordResetDriver(null);
-      setNewDriverPassword('');
-      setConfirmDriverPassword('');
-      setSuccess('ØªÙ… ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ù…Ø¤Ù‚ØªØ©. Ù„Ø§Ø²Ù… Ø§Ù„Ø³Ø§Ø¦Ù‚ ÙŠØºÙŠÙ‘Ø±Ù‡Ø§ Ø¹Ù†Ø¯ Ø£ÙˆÙ„ ØªØ³Ø¬ÙŠÙ„ Ø¯Ø®ÙˆÙ„.');
-    } catch (e: any) {
-      setError(e?.message || 'ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-    } finally {
-      setResettingPassword(false);
-    }
-  }
-
-  async function createDriver(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setError(''); setSuccess('');
-    if (driverTemporaryPassword.length < 8) { setError('ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† 8 Ø£Ø­Ø±Ù.'); return; }
-    if (driverTemporaryPassword !== driverTemporaryPasswordConfirmation) { setError('ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± Ù…Ø·Ø§Ø¨Ù‚.'); return; }
-    setSavingDriver(true);
-    try {
-      const { data: result, error: createError } = await supabase.rpc('main_office_create_driver', {
-        p_name: driverName.trim(), p_phone: driverPhone.trim(), p_driver_code: driverCode.trim() || null, p_vehicle_id: selectedVehicleId || null,
-      });
-      if (createError) throw createError;
-      if (!result?.success || !result?.driver_id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ Ø­ÙØ¸ Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-      const savedDriver = { driverId: String(result.driver_id), name: driverName.trim() };
-      setDriverName(''); setDriverPhone(''); setDriverCode(''); setVehicleSearch(''); setSelectedVehicleId(''); setShowDriverForm(false);
-      try {
-        await createDriverAccount(savedDriver.driverId, driverTemporaryPassword);
-        setSuccess('ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø³Ø§Ø¦Ù‚ ÙˆØ­Ø³Ø§Ø¨ Ø§Ù„Ø¯Ø®ÙˆÙ„ ÙˆØ±Ø¨Ø· Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø§Ù„Ù…Ø®ØªØ§Ø±Ø© Ø¨Ù‡.');
-        setDriverTemporaryPassword(''); setDriverTemporaryPasswordConfirmation('');
-      } catch (accountError: any) {
-        setPendingAccount(savedDriver);
-        setDriverTemporaryPasswordConfirmation('');
-        setError(`ØªÙ… Ø­ÙØ¸ Ø³Ø¬Ù„ Ø§Ù„Ø³Ø§Ø¦Ù‚ØŒ Ù„ÙƒÙ† Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ù… ÙŠÙƒØªÙ…Ù„: ${accountError?.message || 'ØªØ¹Ø°Ø± Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨'}. Ø£Ø¹Ø¯ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ù† Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚.`);
-      }
-      await load();
-    } catch (e: any) {
-      const raw=String(e?.message||'');
-      const messages: Record<string,string> = {
-        DRIVER_NAME_PHONE_AND_VEHICLE_REQUIRED:'Ø£ÙƒÙ…Ù„ Ø§Ø³Ù… Ø§Ù„Ø³Ø§Ø¦Ù‚ ÙˆØ±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ ÙˆØ§Ø®ØªØ§Ø± Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.',
-        VEHICLE_NOT_AVAILABLE:'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ØºÙŠØ± Ù†Ø´Ø·Ø© Ø£Ùˆ ØºÙŠØ± Ù…ØªØ§Ø­Ø© Ù„Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù….',
-        
-        DRIVER_PHONE_INVALID:'Ø£Ø¯Ø®Ù„ Ø±Ù‚Ù… Ù…ÙˆØ¨Ø§ÙŠÙ„ Ù…ØµØ±ÙŠ ØµØ­ÙŠØ­Ù‹Ø§.',
-        DRIVER_PHONE_EXISTS:'Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ Ù…Ø³Ø¬Ù„ Ù„Ø³Ø§Ø¦Ù‚ Ø¨Ø§Ù„ÙØ¹Ù„.',
-        DRIVER_CODE_EXISTS:'ÙƒÙˆØ¯ Ø§Ù„Ø³Ø§Ø¦Ù‚ Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø§Ù„ÙØ¹Ù„.',
-        MAIN_OFFICE_ACCESS_REQUIRED:'Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ† Ù…ØªØ§Ø­ Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-        RAS_SEDR_BRANCH_CONFIGURATION_INVALID:'Ø¥Ø¹Ø¯Ø§Ø¯ Ù…ÙƒØªØ¨ Ø±Ø£Ø³ Ø³Ø¯Ø± ØºÙŠØ± ØµØ­ÙŠØ­.',
-      };
-      const key=Object.keys(messages).find(code=>raw.includes(code)); setError(key?messages[key]:raw||'ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚.');
-    } finally { setSavingDriver(false); }
-  }
-
-  function beginMasterEntryEdit(row?: Row) {
-    setEditingMasterEntry(row ?? null);
-    setMasterForm({ name: String(row?.name ?? ''), code: String(row?.code ?? ''), address: String(row?.notes ?? row?.address ?? ''), phone: String(row?.phone ?? ''), is_active: row?.is_active !== false });
-    setShowMasterForm(true); setError(''); setSuccess('');
-  }
-
-  async function saveMasterEntry(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!['factories', 'quarries'].includes(active)) return;
-    setSavingMaster(true); setError(''); setSuccess('');
-    try {
-      if (editingMasterEntry) {
-        const entityId = active === 'factories' ? editingMasterEntry.factory_id : editingMasterEntry.quarry_id;
-        const { data, error: rpcError } = await supabase.rpc('main_office_update_master_directory', {
-          p_entity_type: active === 'factories' ? 'FACTORY' : 'QUARRY',
-          p_entity_id: entityId,
-          p_code: masterForm.code.trim(),
-          p_name: masterForm.name.trim(),
-          p_notes: masterForm.address.trim() || null,
-          p_is_active: masterForm.is_active,
-        });
-        if (rpcError) throw rpcError;
-        if (!data?.success) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„.');
-      } else {
-        if (!masterForm.code.trim() || !masterForm.name.trim()) throw new Error('Ø§Ù„ÙƒÙˆØ¯ ÙˆØ§Ù„Ø§Ø³Ù… Ù…Ø·Ù„ÙˆØ¨Ø§Ù†.');
-        const { data, error: rpcError } = await supabase.rpc('main_office_upsert_directory', {
-          p_entity_type: active === 'factories' ? 'FACTORY' : 'QUARRY',
-          p_code: masterForm.code.trim(),
-          p_name: masterForm.name.trim(),
-          p_notes: [masterForm.address.trim(), masterForm.phone.trim()].filter(Boolean).join(' | ') || null,
-          p_is_active: masterForm.is_active,
-        });
-        if (rpcError) throw rpcError;
-        if (!data?.id) throw new Error('ØªØ¹Ø°Ø± ØªØ£ÙƒÙŠØ¯ Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„.');
-      }
-      setShowMasterForm(false); setEditingMasterEntry(null);
-      setMasterForm({ name: '', code: '', address: '', phone: '', is_active: true });
-      setSuccess(editingMasterEntry ? 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„ Ø¨Ù†Ø¬Ø§Ø­.' : 'ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø¥Ù„Ù‰ Ø¯Ù„ÙŠÙ„ Ø§Ù„Ù…ÙƒØªØ¨.');
-      await load();
-    } catch (e: any) {
-      const raw = String(e?.message || '');
-      const messages: Record<string, string> = {
-        AUTH_REQUIRED: 'Ø§Ù†ØªÙ‡Øª Ø¬Ù„Ø³Ø© Ø§Ù„Ù…ÙƒØªØ¨. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-        INSUFFICIENT_ROLE: 'Ø¥Ø¶Ø§ÙØ© ÙˆØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…ØµØ§Ù†Ø¹ ÙˆØ§Ù„Ù…Ø­Ø§Ø¬Ø± Ù…ØªØ§Ø­Ø§Ù† Ù„Ù„Ù…ÙƒØªØ¨ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙ‚Ø·.',
-        INVALID_DIRECTORY_ENTITY_TYPE: 'Ù†ÙˆØ¹ Ø§Ù„Ø³Ø¬Ù„ ØºÙŠØ± ØµØ§Ù„Ø­.',
-        DIRECTORY_NAME_REQUIRED: 'Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…ØµÙ†Ø¹ Ø£Ùˆ Ø§Ù„Ù…Ø­Ø¬Ø±.',
-        DIRECTORY_NAME_EXISTS: 'Ø§Ø³Ù… Ø§Ù„Ù…ØµÙ†Ø¹ Ø£Ùˆ Ø§Ù„Ù…Ø­Ø¬Ø± Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø§Ù„ÙØ¹Ù„ ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ø¯Ù„ÙŠÙ„.',
-        DIRECTORY_CODE_EXISTS: 'Ø§Ù„ÙƒÙˆØ¯ Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø§Ù„ÙØ¹Ù„ ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ø¯Ù„ÙŠÙ„. Ø±Ø§Ø¬Ø¹ Ø§Ù„Ø³Ø¬Ù„Ø§Øª Ù‚Ø¨Ù„ Ø§Ù„Ø­ÙØ¸.',
-        DIRECTORY_ENTRY_NOT_FOUND: 'Ø§Ù„Ø³Ø¬Ù„ Ø§Ù„Ù…Ø±Ø§Ø¯ ØªØ¹Ø¯ÙŠÙ„Ù‡ Ù„Ù… ÙŠØ¹Ø¯ Ù…ÙˆØ¬ÙˆØ¯Ù‹Ø§.',
-      };
-      const key = Object.keys(messages).find(code => raw.includes(code));
-      setError(key ? messages[key] : raw || 'ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„. ØªØ£ÙƒØ¯ Ù…Ù† Ù†Ø´Ø± Migration Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ø£ÙˆÙ„Ù‹Ø§.');
-    } finally { setSavingMaster(false); }
-  }
-
-  const lists: Record<ScreenKey, Row[]> = {
-    factories: snapshot?.factories ?? [],
-    quarries: snapshot?.quarries ?? [],
-    drivers: snapshot?.drivers ?? [],
-    vehicles: snapshot?.vehicles ?? [],
-    owners: ownerDirectory,
-    waiting,
-    loads: snapshot?.load_orders ?? [],
-    actual: snapshot?.actual_loading_records ?? [],
-  };
-  const rows = lists[active] ?? [];
-  const visibleRows = active === 'drivers' ? rows.filter(row => String(row.name ?? row.driver_name ?? '').toLocaleLowerCase().includes(driverSearch.trim().toLocaleLowerCase())) : ['factories', 'quarries', 'owners'].includes(active) ? rows.filter(row => [liveName(row), row.code, row.owner_code, row.address, row.phone].some(value => String(value ?? '').toLocaleLowerCase().includes(entitySearch.trim().toLocaleLowerCase()))) : rows;
-  const filteredAvailableVehicles = availableVehicles.filter((vehicle: Row) => [vehicle.plate_number, vehicle.vehicle_code].some(value => String(value ?? '').toLowerCase().includes(vehicleSearch.trim().toLowerCase())));
-  const selectedVehicle = availableVehicles.find((vehicle: Row) => String(vehicle.vehicle_id) === selectedVehicleId);
-  const ActiveIcon = tabs.find(tab => tab.key === active)?.icon ?? ClipboardList;
-
-  return (
-    <section className={`space-y-4 rounded-[2rem] p-2 transition-colors sm:p-3 ${sectionPalette[active].wash}`}>
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="pointer-events-none absolute -left-8 -top-10 h-32 w-32 rounded-full bg-sky-100/70 blur-2xl"/>
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3"><span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md ${sectionPalette[active].selected}`}><ActiveIcon size={25}/></span><div className="min-w-0"><div className="text-[11px] font-black tracking-wider text-slate-400">TIBA SUPPLIES Â· DIRECTORY</div><h2 className="text-xl font-black tracking-tight sm:text-2xl">{tabs.find(tab => tab.key === active)?.label ?? 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙƒØªØ¨'}</h2><p className="mt-1 text-sm leading-6 text-slate-500">{active === 'factories' ? 'Ø¥Ø¯Ø§Ø±Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ØµØ§Ù†Ø¹ ÙˆØ§Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆØ§Ù„Ø£ÙƒÙˆØ§Ø¯ Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ø§Ù„ØªØ´ØºÙŠÙ„.' : active === 'quarries' ? 'Ø¥Ø¯Ø§Ø±Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø­Ø§Ø¬Ø± ÙˆØ§Ù„Ù…ÙˆØ±Ø¯ÙŠÙ† ÙˆÙ…ØµØ§Ø¯Ø± Ø§Ù„ØªØ­Ù…ÙŠÙ„.' : active === 'drivers' ? 'Ù…Ù„ÙØ§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ† ÙˆØ­Ø§Ù„Ø© Ø§Ù„Ø­Ø³Ø§Ø¨ ÙˆØ±Ø¨Ø· Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.' : active === 'vehicles' ? 'Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø£Ø³Ø·ÙˆÙ„ ÙˆÙ…Ù„Ø§Ùƒ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª ÙˆØ±Ø¨Ø· Ø§Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ†.' : active === 'owners' ? 'Ø¥Ø¯Ø§Ø±Ø© Ù…Ø³ØªÙ‚Ù„Ø© Ù„Ù…Ù„ÙØ§Øª Ù…Ù„Ø§Ùƒ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª ÙˆØ£ÙƒÙˆØ§Ø¯Ù‡Ù….' : active === 'waiting' ? 'Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ† Ø§Ù„Ù…ÙˆØ¬ÙˆØ¯ÙŠÙ† ÙÙŠ Ù‚Ø§Ø¦Ù…Ø© Ø§Ù†ØªØ¸Ø§Ø± Ø±Ø£Ø³ Ø³Ø¯Ø±.' : active === 'loads' ? 'Ù…ØªØ§Ø¨Ø¹Ø© Ø£ÙˆØ§Ù…Ø± Ø§Ù„ØªØ­Ù…ÙŠÙ„ ÙˆØ­Ø§Ù„ØªÙ‡Ø§ Ù…Ù† Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØªØ´ØºÙŠÙ„.' : 'Ø³Ø¬Ù„Ø§Øª Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙØ¹Ù„ÙŠ ÙˆØ§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø³Ø¬Ù„Ø© ÙŠÙˆÙ…ÙŠÙ‹Ø§.'}</p></div></div>
-          <button onClick={() => void load()} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"><RefreshCw size={17} className={loading ? 'animate-spin' : ''}/> ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª</button>
-        </div>
-      </div>
-      {showSectionTabs && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          const selected = active === tab.key;
-          return <button key={tab.key} type="button" onClick={() => setActive(tab.key)} aria-pressed={selected} className={selected ? `group flex min-h-[88px] items-center gap-3 rounded-2xl border p-3 text-right text-sm font-black text-white shadow-md ring-2 ring-offset-1 transition ${sectionPalette[tab.key].selected} ring-white/70` : 'group flex min-h-[88px] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right text-sm font-bold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md'}>
-            <span className={selected ? 'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20' : `flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${sectionPalette[tab.key].wash} ${sectionPalette[tab.key].accent}`}><Icon size={22} strokeWidth={2.2}/></span>
-            <span className="min-w-0 flex-1 leading-5">{tab.label}</span>
-            <span className={selected ? 'flex h-7 min-w-7 items-center justify-center rounded-full bg-white/20 px-2 text-xs tabular-nums' : `flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs tabular-nums ${sectionPalette[tab.key].wash} ${sectionPalette[tab.key].accent}`}>{lists[tab.key].length}</span>
-          </button>;
-        })}
-      </div>}
-      {active === 'waiting' && waitingWindow && <div className={`rounded-2xl border p-4 text-sm ${waitingWindow.status === 'OPEN' ? 'border-violet-200 bg-violet-50 text-violet-950' : 'border-slate-200 bg-slate-50 text-slate-700'}`}><strong>Ù†Ø§ÙØ°Ø© Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù†Ù‚Ù„Ø§Øª:</strong> {waitingWindow.status === 'OPEN' ? 'Ù…ÙØªÙˆØ­Ø©' : waitingWindow.status === 'CLOSED' ? 'Ù…ØºÙ„Ù‚Ø©' : 'Ù…Ù„ØºØ§Ø©'}{waitingWindow.selection_ends_at ? ` Â· ØªÙ†ØªÙ‡ÙŠ ${new Date(waitingWindow.selection_ends_at).toLocaleTimeString('ar-EG')}` : ''}{waitingWindow.opened_at ? ` Â· Ø¨Ø¯Ø£Øª ${new Date(waitingWindow.opened_at).toLocaleTimeString('ar-EG')}` : ''}. Ø§Ù„ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ ÙŠØªÙ… Ø¹Ù„Ù‰ Ø§Ù„Ø³ÙŠØ±ÙØ± Ø¨Ø¹Ø¯ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø®Ù…Ø³ Ø¯Ù‚Ø§Ø¦Ù‚.</div>}
-      {success && <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{success}</div>}
-      {error && <div role="alert" className="flex gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><AlertTriangle size={18} className="shrink-0"/><span>{error}</span></div>}
-      {pendingAccount && <div className="flex flex-col gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="text-sm text-amber-950"><p className="font-black">Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³ÙˆØ§Ù‚ Ø§ØªØ­ÙØ¸ØªØŒ ÙˆÙ„Ø³Ù‡ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø­ØªØ§Ø¬ Ø¥Ø¹Ø§Ø¯Ø© Ù…Ø­Ø§ÙˆÙ„Ø©</p><p className="mt-1">{pendingAccount.name}</p><p className="mt-1 text-xs">Ø±Ù‚Ù… Ø§Ù„Ø³Ø¬Ù„: {pendingAccount.driverId}</p></div><button type="button" onClick={() => void retryDriverAccount()} disabled={retryingInvite} className="rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60">{retryingInvite ? 'Ø¬Ø§Ø±ÙŠ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨...' : 'Ø¥Ø¹Ø§Ø¯Ø© Ù…Ø­Ø§ÙˆÙ„Ø© Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨'}</button></div>}
-      {active === 'vehicles' && <section className={`rounded-3xl border bg-white p-4 shadow-sm sm:p-5 ${sectionPalette[active].border}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><h3 className="font-black">Ø¥Ø¶Ø§ÙØ© Ø¹Ø±Ø¨ÙŠØ© Ø¬Ø¯ÙŠØ¯Ø©</h3><p className="mt-1 text-sm text-slate-500">ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© ÙˆÙ…Ø§Ù„ÙƒÙ‡Ø§. Ø±Ø¨Ø· Ø§Ù„Ø³ÙˆØ§Ù‚ Ø®Ø·ÙˆØ© Ù…Ù†ÙØµÙ„Ø©.</p></div>
-          <button type="button" onClick={() => setShowVehicleForm(v => !v)} className={`rounded-xl px-4 py-2.5 text-sm font-black text-white transition ${sectionPalette[active].action}`}>{showVehicleForm ? 'Ø¥Ù„ØºØ§Ø¡' : 'Ø¥Ø¶Ø§ÙØ© Ø¹Ø±Ø¨ÙŠØ©'}</button>
-        </div>
-        {showVehicleForm && <div className="mt-4"><AddVehicleForm owners={ownerDirectory as Array<{ owner_id: string; name: string; owner_code?: string; is_active?: boolean }>} onSaved={() => { void load(); setSuccess('ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø¨ÙƒÙˆØ¯ ØªÙ„Ù‚Ø§Ø¦ÙŠ ÙˆØ±Ø¨Ø·Ù‡Ø§ Ø¨Ø§Ù„Ù…Ø§Ù„Ùƒ Ø§Ù„Ù…Ø®ØªØ§Ø±.'); }} /></div>}
-      </section>}
-      {active === 'drivers' && <section className={`rounded-3xl border bg-white p-4 shadow-sm sm:p-5 ${sectionPalette[active].border}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><h3 className="font-black">Ø¥Ø¶Ø§ÙØ© Ø³Ø§Ø¦Ù‚ Ø¬Ø¯ÙŠØ¯</h3><p className="mt-1 text-sm text-slate-500">Ù…Ù…ÙƒÙ† ØªØ±Ø¨Ø· Ø£ÙƒØªØ± Ù…Ù† Ø³ÙˆØ§Ù‚ Ø¨Ù†ÙØ³ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©ØŒ Ù…Ø¹ Ù…Ù†Ø¹ ØªØ¹Ø§Ø±Ø¶ Ø§Ù„Ù†Ù‚Ù„Ø§Øª Ø§Ù„ÙØ¹Ù„ÙŠØ©.</p></div>
-          <button type="button" onClick={() => { setShowDriverForm(v => !v); setError(''); setSuccess(''); }} className={`rounded-xl px-4 py-2.5 text-sm font-black text-white transition ${sectionPalette[active].action}`}>{showDriverForm ? 'Ø¥Ù„ØºØ§Ø¡' : 'Ø¥Ø¶Ø§ÙØ© Ø³Ø§Ø¦Ù‚'}</button>
-        </div>
-        {showDriverForm && <form onSubmit={createDriver} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm font-bold text-slate-700">Ø§Ø³Ù… Ø§Ù„Ø³ÙˆØ§Ù‚ Ø¨Ø§Ù„ÙƒØ§Ù…Ù„<input required value={driverName} onChange={e => setDriverName(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" placeholder="Ø§Ø³Ù… Ø§Ù„Ø³ÙˆØ§Ù‚"/><span className="mt-1 block text-xs font-normal text-slate-500">Ù…Ø³Ù…ÙˆØ­ ØªÙƒØ±Ø§Ø± Ø§Ù„Ø§Ø³Ù…Ø› Ø§Ù„ØªÙ…ÙŠÙŠØ² Ø¨ÙŠÙƒÙˆÙ† Ø¨Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ ÙˆÙƒÙˆØ¯ Ø§Ù„Ø³Ø§Ø¦Ù‚ Ø¥Ù† ÙˆÙØ¬Ø¯.</span></label>
-          <label className="text-sm font-bold text-slate-700">Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ â€” Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…<div className="relative mt-1.5"><Phone size={18} className="absolute right-3 top-3.5 text-slate-400"/><input required type="tel" inputMode="tel" value={driverPhone} onChange={e => setDriverPhone(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white p-3 pr-10 font-normal" placeholder="01012345678"/></div><span className="mt-1 block text-xs font-normal text-slate-500">Ø§Ù„Ø³Ø§Ø¦Ù‚ Ø³ÙŠØ¯Ø®Ù„ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø±Ù‚Ù… ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„ØªÙŠ ØªØ­Ø¯Ø¯Ù‡Ø§.</span></label>
-          <label className="text-sm font-bold text-slate-700">ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„Ø³Ø§Ø¦Ù‚<input required type="password" autoComplete="new-password" minLength={8} value={driverTemporaryPassword} onChange={e => setDriverTemporaryPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" /><span className="mt-1 block text-xs font-normal text-slate-500">Ø¯ÙŠ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„ØªÙŠ Ø³ØªÙ†Ø´Ø¦ Ø¨Ù‡Ø§ Ø­Ø³Ø§Ø¨ Ø§Ù„Ø³Ø§Ø¦Ù‚. Ø³Ù„Ù‘Ù…Ù‡Ø§ Ù„Ù‡ Ù…Ø¨Ø§Ø´Ø±Ø©.</span></label>
-          <label className="text-sm font-bold text-slate-700">ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±<input required type="password" autoComplete="new-password" minLength={8} value={driverTemporaryPasswordConfirmation} onChange={e => setDriverTemporaryPasswordConfirmation(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" /></label>
-          <div className="sm:col-span-2 text-sm font-bold text-slate-700">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ø§Ù„Ø³Ø§Ø¦Ù‚
-            <label className="relative mt-1.5 block"><span className="sr-only">Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</span><input value={vehicleSearch} onChange={e => { setVehicleSearch(e.target.value); setSelectedVehicleId(''); }} className="w-full rounded-xl border border-slate-300 bg-white p-3 pr-10 font-normal" placeholder="Ø§Ø¨Ø­Ø« Ø¨Ø±Ù‚Ù… Ø§Ù„Ù„ÙˆØ­Ø© Ø£Ùˆ ÙƒÙˆØ¯ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©..."/><span className="absolute right-3 top-3 text-slate-400"><Truck size={18}/></span></label>
-            <select required value={selectedVehicleId} onChange={e => setSelectedVehicleId(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal">
-              <option value="">Ø§Ø®ØªØ§Ø± Ø¹Ø±Ø¨ÙŠØ© Ù…ØªØ§Ø­Ø©</option>
-              {filteredAvailableVehicles.map((vehicle: Row) => <option key={vehicle.vehicle_id} value={vehicle.vehicle_id}>{vehicle.plate_number}{Array.isArray(vehicle.assigned_drivers) && vehicle.assigned_drivers.length ? ` â€” Ù…Ø±ØªØ¨Ø· Ø¨Ù‡Ø§ ${vehicle.assigned_drivers.length} Ø³ÙˆØ§Ù‚` : ''}</option>)}
-            </select>
-            <span className="mt-1 block text-xs font-normal text-slate-500">{filteredAvailableVehicles.length} Ø¹Ø±Ø¨ÙŠØ© Ù†Ø´Ø·Ø© ÙÙŠ Ø§Ù„Ø£Ø³Ø·ÙˆÙ„</span>
-          </div>
-          <div className="sm:col-span-2 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
-            ØªÙ‚Ø¯Ø± ØªØ±Ø¨Ø· Ù†ÙØ³ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø¨Ø£ÙƒØªØ± Ù…Ù† Ø³ÙˆØ§Ù‚ Ù†Ø´Ø·. Ø§Ù„Ù†Ø¸Ø§Ù… Ø¨ÙŠØ­ØªÙØ¸ Ø¨ØªØ§Ø±ÙŠØ® ÙƒÙ„ Ø±Ø¨Ø·ØŒ ÙˆØ¨ÙŠÙ…Ù†Ø¹ ØªØ¹Ø§Ø±Ø¶ Ø§Ù„Ù†Ù‚Ù„Ø§Øª Ø§Ù„ÙØ¹Ù„ÙŠØ© Ø¹Ù„Ù‰ Ù†ÙØ³ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.
-          </div>
-          <label className="text-sm font-bold text-slate-700">ÙƒÙˆØ¯ Ø§Ù„Ø³ÙˆØ§Ù‚ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)<input value={driverCode} onChange={e => setDriverCode(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" placeholder="Ù„Ùˆ Ø¹Ù†Ø¯Ù‡ ÙƒÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„"/></label>
-          <div className="sm:col-span-2 flex flex-wrap items-center gap-3"><button disabled={savingDriver} type="submit" className={`rounded-xl px-5 py-3 text-sm font-black text-white transition disabled:opacity-60 ${sectionPalette[active].action}`}>{savingDriver ? 'Ø¬Ø§Ø±ÙŠ Ø­ÙØ¸ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ÙˆØ¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨...' : 'Ø­ÙØ¸ Ø§Ù„Ø³ÙˆØ§Ù‚ ÙˆØ¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨'}</button><p className="text-xs leading-5 text-slate-500">Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ Ù‡Ùˆ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ØŒ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„ØªÙŠ ØªØ­Ø¯Ø¯Ù‡Ø§ Ù‡Ù†Ø§ Ù‡ÙŠ ÙƒÙ„Ù…Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„. Ù„Ø§ ØªÙØ±Ø³Ù„ Ø±Ø³Ø§Ø¦Ù„ Ø£Ùˆ Ø¥ÙŠÙ…ÙŠÙ„Ø§Øª.</p></div>
-        </form>}
-      </section>}
-
-      {passwordResetDriver && active === 'drivers' && <section className="rounded-3xl border border-amber-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4"><h3 className="font-black">ØªØ¹ÙŠÙŠÙ† ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø¬Ø¯ÙŠØ¯Ø©</h3><p className="mt-1 text-sm text-slate-500">Ø§Ù„Ø³Ø§Ø¦Ù‚: {passwordResetDriver.name ?? passwordResetDriver.driver_name ?? 'Ø³Ø§Ø¦Ù‚'}. Ø³ÙŠØªÙ… Ø·Ù„Ø¨ ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø¹Ù†Ø¯ Ø£ÙˆÙ„ Ø¯Ø®ÙˆÙ„.</p></div>
-        <form onSubmit={resetDriverPassword} className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm font-bold text-slate-700">ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©<input required type="password" autoComplete="new-password" minLength={8} value={newDriverPassword} onChange={e => setNewDriverPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal"/></label>
-          <label className="text-sm font-bold text-slate-700">ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±<input required type="password" autoComplete="new-password" minLength={8} value={confirmDriverPassword} onChange={e => setConfirmDriverPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal"/></label>
-          <div className="sm:col-span-2 flex flex-wrap gap-3"><button disabled={resettingPassword} type="submit" className="rounded-xl bg-amber-600 px-5 py-3 text-sm font-black text-white disabled:opacity-60">{resettingPassword ? 'Ø¬Ø§Ø±ÙŠ ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±...' : 'ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©'}</button><button type="button" onClick={() => { setPasswordResetDriver(null); setNewDriverPassword(''); setConfirmDriverPassword(''); }} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold">Ø¥Ù„ØºØ§Ø¡</button></div>
-        </form>
-      </section>}
-
-      {editingDriver && active === 'drivers' && <section className="rounded-3xl border border-red-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4"><h3 className="font-black">ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚</h3><p className="mt-1 text-sm text-slate-500">Ø¹Ø¯Ù‘Ù„ Ø¨ÙŠØ§Ù†Ø§ØªÙ‡ Ø£Ùˆ Ø§Ø±Ø¨Ø·Ù‡ Ø¨Ø£ÙŠ Ø¹Ø±Ø¨ÙŠØ© Ù†Ø´Ø·Ø©Ø› Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ù…Ù…ÙƒÙ† ÙŠÙƒÙˆÙ† Ø¹Ù„ÙŠÙ‡Ø§ Ø³ÙˆØ§Ù‚ÙŠÙ† ØªØ§Ù†ÙŠÙŠÙ†.</p></div>
-        <form onSubmit={saveDriverEdit} className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm font-bold text-slate-700">Ø§Ø³Ù… Ø§Ù„Ø³Ø§Ø¦Ù‚<input required value={driverEditName} onChange={e => setDriverEditName(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal"/></label>
-          <label className="text-sm font-bold text-slate-700">Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„<input required type="tel" disabled={Boolean(editingDriver.auth_user_id)} value={driverEditPhone} onChange={e => setDriverEditPhone(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal disabled:bg-slate-100"/>{editingDriver.auth_user_id && <span className="mt-1 block text-xs font-normal text-slate-500">Ù‡Ø°Ø§ Ø§Ù„Ø±Ù‚Ù… Ù‡Ùˆ Ø§Ø³Ù… Ø¯Ø®ÙˆÙ„ Ø§Ù„Ø³Ø§Ø¦Ù‚ØŒ Ù„Ø°Ù„Ùƒ ØªØ¹Ø¯ÙŠÙ„Ù‡ ÙŠØ­ØªØ§Ø¬ Ø¥Ø¬Ø±Ø§Ø¡Ù‹ Ù…Ù†ÙØµÙ„Ù‹Ø§ Ù„Ù„Ø­Ø³Ø§Ø¨.</span>}</label>
-          <label className="text-sm font-bold text-slate-700">ÙƒÙˆØ¯ Ø§Ù„Ø³Ø§Ø¦Ù‚ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)<input value={driverEditCode} onChange={e => setDriverEditCode(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal"/></label>
-          <label className="text-sm font-bold text-slate-700">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©<select value={driverEditVehicleId} onChange={e => setDriverEditVehicleId(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal"><option value="">Ø§Ø®ØªØ§Ø± Ø¹Ø±Ø¨ÙŠØ© Ù†Ø´Ø·Ø©</option>{driverEditVehicles.map(vehicle => <option key={vehicle.vehicle_id} value={vehicle.vehicle_id}>{vehicle.plate_number}{Array.isArray(vehicle.assigned_drivers) && vehicle.assigned_drivers.length > 1 ? ` â€” ${vehicle.assigned_drivers.length} Ø³ÙˆØ§Ù‚ÙŠÙ† Ù…Ø±ØªØ¨Ø·ÙŠÙ†` : ''}</option>)}</select></label>
-          <div className="sm:col-span-2 flex flex-wrap gap-3"><button disabled={savingEdit || !driverEditOptionsLoaded} type="submit" className="rounded-xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-700 disabled:opacity-60">{savingEdit ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...' : 'Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„'}</button><button type="button" onClick={() => setEditingDriver(null)} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold">Ø¥Ù„ØºØ§Ø¡</button></div>
-        </form>
-      </section>}
-
-      {editingOwner && active === 'owners' && <section className="rounded-3xl border border-teal-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4"><h3 className="font-black">ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ø§Ù„Ùƒ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</h3><p className="mt-1 text-sm text-slate-500">ÙƒÙˆØ¯ Ø§Ù„Ù…Ø§Ù„Ùƒ Ø«Ø§Ø¨ØªØŒ ÙˆØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø§Ø³Ù… Ø£Ùˆ Ø§Ù„Ù‡Ø§ØªÙ Ù„Ø§ ÙŠØºÙŠÙ‘Ø± Ù…Ù„ÙƒÙŠØ© Ø§Ù„Ø¹Ø±Ø¨ÙŠØ§Øª Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ù‡.</p></div>
-        <form onSubmit={saveOwnerEdit} className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm font-bold text-slate-700">Ø§Ø³Ù… Ø§Ù„Ù…Ø§Ù„Ùƒ *<input required maxLength={200} value={ownerEditName} onChange={e => setOwnerEditName(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" /></label>
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛß}í:-jZ.¶›­–)Ş³V–×÷'B&V7BÂ²W6T6ÆÆ&6²ÂW6TVffV7BÂW6U7FFRÒg&öÒw&V7Bs°Ğ¦–×÷'B²'V–ÆF–æs"ÂÖ÷VçF–âÂW6W'2ÂW6W%‚ÂG'V6²Â6Æ—&ö&D6†V6²ÂW6W%&÷VæBÂ6Æ—&ö&DÆ—7BÂ6Æö6³2Â&Vg&W6„7rÂÆW'EG&–ævÆRÂVæ6–ÂÂW6W$Ö–çW2Â†öæRÂÖ÷&T†÷&—¦öçFÂÒg&öÒvÇV6–FR×&V7Bs°Ğ¦–×÷'B²vWDÆ—fU6æ6†÷BÂÆ—fU6æ6†÷BÂÆ—fTæÖRÒg&öÒrââ÷6W'f–6W2öÆ—fTFFs°Ğ¦–×÷'B²7W&6RÒg&öÒrââöÆ–"÷7W&6Rs°Ğ¦–×÷'B²FEfV†–6ÆTf÷&ÒÒg&öÒrâôFEfV†–6ÆTf÷&Òs°Ğ Ğ§G—R67&VVä¶W’Òvf7F÷&–W2rÂwV'&–W2rÂvG&—fW'2rÂwfV†–6ÆW2rÂv÷væW'2rÂwv—F–ærrÂvÆöG2rÂv7GVÂs°Ğ§G—R&÷rÒ&V6÷&CÇ7G&–ærÂç“ã°Ğ¦6öç7BF'3¢²¶W“¢67&VVä¶W“²Æ&VÃ¢7G&–æs²–6öã¢&V7BäVÆVÖVçEG—RÕµÒÒ°Ğ¢²¶W“¢vf7F÷&–W2rÂÆ&VÃ¢}Š}˜M˜]‹]Š}˜m‹’˜Š}˜M‹˜]˜MŠ}ŠrÂ–6öã¢'V–ÆF–æs"ÒÀĞ¢²¶W“¢wV'&–W2rÂÆ&VÃ¢}Š}˜M˜]ŠİŠ}ŠÍ‹˜Š}˜M˜]˜‹Šı˜˜brÂ–6öã¢Ö÷VçF–âÒÀĞ¢²¶W“¢vG&—fW'2rÂÆ&VÃ¢}Š}˜M‹=Š}Šm˜-˜˜brÂ–6öã¢W6W'2ÒÀĞ¢²¶W“¢wfV†–6ÆW2rÂÆ&VÃ¢}Š=‹=‹}˜˜BŠ}˜M‹=˜­Š}‹Š}Š¢rÂ–6öã¢G'V6²ÒÀĞ¢²¶W“¢v÷væW'2rÂÆ&VÃ¢}˜]˜MŠ}˜2Š}˜M‹‹Š˜­Š}Š¢rÂ–6öã¢W6W%&÷VæBÒÀĞ¢²¶W“¢wv—F–ærrÂÆ&VÃ¢}˜-Š}Šm˜]Š’Š}˜mŠ­‹Š}‹‹Š=‹2‹=Šı‹rÂ–6öã¢6Æö6³2ÒÀĞ¢²¶W“¢vÆöG2rÂÆ&VÃ¢}Š=˜Š}˜]‹Š}˜MŠ­Šİ˜]˜­˜BrÂ–6öã¢6Æ—&ö&DÆ—7BÒÀĞ¢²¶W“¢v7GVÂrÂÆ&VÃ¢}Š}˜MŠ­Šİ˜]˜­˜BŠ}˜M˜‹˜M˜¢rÂ–6öã¢6Æ—&ö&D6†V6²ÒÀĞ¥Ó°Ğ Ğ¦6öç7B6V7F–öåÆWGFS¢&V6÷&CÅ67&VVä¶W’Â²6VÆV7FVC¢7G&–æs²66VçC¢7G&–æs²&÷&FW#¢7G&–æs²7F–öã¢7G&–æs²&÷s¢7G&–æs²v6ƒ¢7G&–ærÓâÒ°Ğ¢f7F÷&–W3¢²6VÆV7FVC¢v&÷&FW"×6·’Óc&r×6·’ÓcrÂ66VçC¢wFW‡B×6·’ÓsrÂ&÷&FW#¢v&÷&FW"×6·’Ó#rÂ7F–öã¢v&r×6·’Óc†÷fW#¦&r×6·’ÓsrÂ&÷s¢v&÷&FW"×"×6·’ÓCrÂv6ƒ¢v&r×6·’ÓSóSrÒÀĞ¢V'&–W3¢²6VÆV7FVC¢v&÷&FW"ÖÖ&W"Óc&rÖÖ&W"ÓcrÂ66VçC¢wFW‡BÖÖ&W"ÓsrÂ&÷&FW#¢v&÷&FW"ÖÖ&W"Ó#rÂ7F–öã¢v&rÖÖ&W"Óc†÷fW#¦&rÖÖ&W"ÓsrÂ&÷s¢v&÷&FW"×"ÖÖ&W"ÓCrÂv6ƒ¢v&rÖÖ&W"ÓSóSrÒÀĞ¢G&—fW'3¢²6VÆV7FVC¢v&÷&FW"×&VBÓc&r×&VBÓcrÂ66VçC¢wFW‡B×&VBÓsrÂ&÷&FW#¢v&÷&FW"×&VBÓ#rÂ7F–öã¢v&r×&VBÓc†÷fW#¦&r×&VBÓsrÂ&÷s¢v&÷&FW"×"×&VBÓCrÂv6ƒ¢v&r×&VBÓSóSrÒÀĞ¢fV†–6ÆW3¢²6VÆV7FVC¢v&÷&FW"Ö&ÇVRÓc&rÖ&ÇVRÓcrÂ66VçC¢wFW‡BÖ&ÇVRÓsrÂ&÷&FW#¢v&÷&FW"Ö&ÇVRÓ#rÂ7F–öã¢v&rÖ&ÇVRÓc†÷fW#¦&rÖ&ÇVRÓsrÂ&÷s¢v&÷&FW"×"Ö&ÇVRÓCrÂv6ƒ¢v&rÖ&ÇVRÓSóSrÒÀĞ¢÷væW'3¢²6VÆV7FVC¢v&÷&FW"×FVÂÓc&r×FVÂÓcrÂ66VçC¢wFW‡B×FVÂÓsrÂ&÷&FW#¢v&÷&FW"×FVÂÓ#rÂ7F–öã¢v&r×FVÂÓc†÷fW#¦&r×FVÂÓsrÂ&÷s¢v&÷&FW"×"×FVÂÓCrÂv6ƒ¢v&r×FVÂÓSóSrÒÀĞ¢v—F–æs¢²6VÆV7FVC¢v&÷&FW"×f–öÆWBÓc&r×f–öÆWBÓcrÂ66VçC¢wFW‡B×f–öÆWBÓsrÂ&÷&FW#¢v&÷&FW"×f–öÆWBÓ#rÂ7F–öã¢v&r×f–öÆWBÓc†÷fW#¦&r×f–öÆWBÓsrÂ&÷s¢v&÷&FW"×"×f–öÆWBÓCrÂv6ƒ¢v&r×f–öÆWBÓSóSrÒÀĞ¢ÆöG3¢²6VÆV7FVC¢v&÷&FW"Ö÷&ævRÓc&rÖ÷&ævRÓcrÂ66VçC¢wFW‡BÖ÷&ævRÓsrÂ&÷&FW#¢v&÷&FW"Ö÷&ævRÓ#rÂ7F–öã¢v&rÖ÷&ævRÓc†÷fW#¦&rÖ÷&ævRÓsrÂ&÷s¢v&÷&FW"×"Ö÷&ævRÓCrÂv6ƒ¢v&rÖ÷&ævRÓSóSrÒÀĞ¢7GVÃ¢²6VÆV7FVC¢v&÷&FW"ÖVÖW&ÆBÓc&rÖVÖW&ÆBÓcrÂ66VçC¢wFW‡BÖVÖW&ÆBÓsrÂ&÷&FW#¢v&÷&FW"ÖVÖW&ÆBÓ#rÂ7F–öã¢v&rÖVÖW&ÆBÓc†÷fW#¦&rÖVÖW&ÆBÓsrÂ&÷s¢v&÷&FW"×"ÖVÖW&ÆBÓCrÂv6ƒ¢v&rÖVÖW&ÆBÓSóSrÒÀĞ§Ó°Ğ Ğ¦gVæ7F–öâ&÷uF—FÆR‡&÷s¢&÷rÂ¶W“¢67&VVä¶W’’°Ğ¢–b†¶W’ÓÓÒvf7F÷&–W2r’&WGW&âÆ—fTæÖR‡&÷r“°Ğ¢–b†¶W’ÓÓÒwV'&–W2r’&WGW&âÆ—fTæÖR‡&÷r“°Ğ¢–b†¶W’ÓÓÒvG&—fW'2r’&WGW&â&÷rææÖRóò&÷ræG&—fW%öæÖRóò}‹=Š}Šm˜"ŠŠı˜˜bŠ}‹=˜Rs°Ğ¢–b†¶W’ÓÓÒwfV†–6ÆW2r’&WGW&â&÷rçÆFUöçVÖ&W"óò&÷rçfV†–6ÆUö6öFRóò}‹‹Š˜­Š’ŠŠı˜˜b˜M˜ŠİŠ’s°Ğ¢–b†¶W’ÓÓÒv÷væW'2r’&WGW&â&÷rææÖRóò}˜]Š}˜M˜2ŠŠı˜˜bŠ}‹=˜Rs°Ğ¢–b†¶W’ÓÓÒwv—F–ærr’&WGW&â&÷rçÆFUöçVÖ&W"óò&÷ræG&—fW%öæÖRóò}‹˜m‹]‹Š}˜mŠ­‹Š}‹s°Ğ¢–b†¶W’ÓÓÒvÆöG2r’&WGW&âÆ—fTæÖR‡&÷rÂ&÷ræÆöEö÷&FW%ö–Bóò}Š=˜]‹Š­Šİ˜]˜­˜Br“°Ğ¢&WGW&â&÷rçG&—ö6öFRóò&÷rçF–6¶WEöçVÖ&W"óò&÷rç&V6÷&EöçVÖ&W"óò&÷ræ7GVÅöÆöF–æu÷&V6÷&Eö–Bóò}‹=ŠÍ˜BŠ­Šİ˜]˜­˜B˜‹˜M˜¢s°Ğ§ĞĞ¦gVæ7F–öâ&÷tFWF–Ç2‡&÷s¢&÷rÂ¶W“¢67&VVä¶W’’°Ğ¢–b†¶W’ÓÓÒvf7F÷&–W2r’&WGW&â·&÷ræFG&W72Â&÷rç†öæRÂ&÷ræ—5ö7F—fRÓÓÒfÇ6Rò}‹­˜­‹˜m‹M‹rr¢}˜m‹M‹ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢–b†¶W’ÓÓÒwV'&–W2r’&WGW&â·&÷ræFG&W72Â&÷rç†öæRÂ&÷ræ—5ö7F—fRÓÓÒfÇ6Rò}‹­˜­‹˜m‹M‹rr¢}˜m‹M‹ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢–b†¶W’ÓÓÒvG&—fW'2r’&WGW&â·&÷rç†öæRÂ&÷ræ—5ö7F—fRÓÓÒfÇ6Rò}‹­˜­‹˜m‹M‹rr¢}˜m‹M‹ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢–b†¶W’ÓÓÒwfV†–6ÆW2r’&WGW&â·&÷ræ÷væW%öæÖRò}Š}˜M˜]Š}˜M˜3¢r²&÷ræ÷væW%öæÖR¢rrÂ'&’æ—4'&’‡&÷ræ76–væVEöG&—fW'2’bb&÷ræ76–væVEöG&—fW'2æÆVæwF‚ò}Š}˜M‹=Š}Šm˜-˜˜c¢r²&÷ræ76–væVEöG&—fW'2æÖ‚†G&—fW#¢&÷r’ÓâG&—fW"ææÖR’æf–ÇFW"„&ööÆVâ’æ¦ö–â‚}ˆÂr’¢}˜MŠr˜­˜ŠÍŠò‹=Š}Šm˜-˜˜b˜]‹Š­Š‹}˜˜brÂ&÷rçG'V6µ÷G—Róò&÷rçfV†–6ÆU÷G—RÂ&÷ræ66—G•÷Föç2ò&÷ræ66—G•÷Föç2²r‹}˜br¢rrÂ&÷ræ—5ö7F—fRÓÓÒfÇ6Rò}‹­˜­‹˜m‹M‹}Š’r¢}˜m‹M‹}Š’uÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢–b†¶W’ÓÓÒv÷væW'2r’&WGW&â·&÷rç†öæRÂ&÷ræ—5ö7F—fRÓÓÒfÇ6Rò}‹­˜­‹˜m‹M‹rr¢}˜m‹M‹ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢–b†¶W’ÓÓÒwv—F–ærr’&WGW&â·&÷ræG&—fW%öæÖRÂ&÷rç7FGW2ÓÓÒut•D”ärrò}˜˜¢Š}˜MŠ}˜mŠ­‹Š}‹r¢&÷rç7FGW2ÓÓÒt54”täTBrò}Š­˜RŠ}˜MŠ­Ší‹]˜­‹Rr¢&÷rç7FGW2Â&÷rç6VÆV7FVEöf7F÷'•öæÖRbb&÷rç6VÆV7FVE÷V''•öæÖRòŠ}ŠíŠ­Š}‹¢G·&÷rç6VÆV7FVEöf7F÷'•öæÖWÒ(iG·&÷rç6VÆV7FVE÷V''•öæÖWÖ¢rrÂ&÷ræ6†ö–6U÷7FGW2ÓÓÒt4„õ4Târò}Š}˜MŠ}ŠíŠ­˜­Š}‹˜]‹=ŠÍ˜B(	B˜˜¢Š}˜mŠ­‹Š}‹Š}˜MŠ­˜‹-˜­‹’r¢&÷ræ6†ö–6U÷7FGW2ÓÓÒtÄÄô4DTBrò}Š­˜RŠ}˜MŠ­˜‹-˜­‹’Š}˜M˜m˜}Š}Šm˜¢r¢&÷ræ6†ö–6U÷7FGW2ÓÓÒtäõEôÄÄô4DTBrò}˜M˜R˜­Š­˜RŠ­Ší‹]˜­‹RŠ}ŠíŠ­˜­Š}‹˜2r¢rrÂ&÷rçG&—ö6öFRò˜=˜ŠòŠ}˜M˜m˜-˜MŠ“¢G·&÷rçG&—ö6öFWÖ¢rrÂ&÷ræ'&—fVEöBòæWrFFR‡&÷ræ'&—fVEöB’çFôÆö6ÆU7G&–ær‚v"ÔTrrÂ²F–ÖU¦öæS¢tg&–6ô6—&òrÒ’¢ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢–b†¶W’ÓÓÒvÆöG2r’&WGW&â·&÷rç7FGW2Â&÷rç&WVW7FVE÷VçF—G’ò}Š}˜M˜]‹}˜M˜Šƒ¢r²&÷rç&WVW7FVE÷VçF—G’¢rrÂ&÷ræ7&VFVEöBòæWrFFR‡&÷ræ7&VFVEöB’çFôÆö6ÆU7G&–ær‚v"ÔTrrÂ²F–ÖU¦öæS¢tg&–6ô6—&òrÒ’¢ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ¢&WGW&â·&÷ræÆöF–æu÷6WVVæ6UöFFRÇÂ&÷ræÆöEöFFRÂ&÷ræf7F÷'•öæÖRò}Š}˜M˜]‹]˜m‹“¢r²&÷ræf7F÷'•öæÖR¢rrÂ&÷rçV''•öæÖRò}Š}˜M˜]ŠİŠÍ‹¢r²&÷rçV''•öæÖR¢rrÂ&÷rç&VF—&V7E÷&V6öâò}‹=ŠŠ‚Š}˜MŠ­Šİ˜˜­˜C¢r²&÷rç&VF—&V7E÷&V6öâ¢rrÂ&÷ræF–Ç•öÆöEöçVÖ&W"ò}Š­Šİ˜]˜­˜BŠ}˜M˜­˜˜R2r²&÷ræF–Ç•öÆöEöçVÖ&W"¢rrÂ&÷rçF–6¶WEöçVÖ&W"ò}Š­‹˜=‹Š“¢r²&÷rçF–6¶WEöçVÖ&W"¢rrÂ&÷ræ7GVÅ÷vV–v‡BÒçVÆÂò}Š}˜M˜‹-˜c¢r²&÷ræ7GVÅ÷vV–v‡B²r‹}˜br¢}Š}˜M˜‹-˜b˜M˜R˜­˜ı‹=ŠÍ˜BrÂ&÷ræ7&VFVEöBòæWrFFR‡&÷ræ7&VFVEöB’çFôÆö6ÆU7G&–ær‚v"ÔTrrÂ²F–ÖU¦öæS¢tg&–6ô6—&òrÒ’¢ruÒæf–ÇFW"„&ööÆVâ’æ¦ö–â‚r+rr“°Ğ§ĞĞ Ğ¦W‡÷'B6öç7Böff–6TF—&V7F÷'•67&VVã¢&V7Bäd3Ç²–æ—F–Å6V7F–öãó¢67&VVä¶W“²6†÷u6V7F–öåF'3ó¢&ööÆVâÓâÒ‡²–æ—F–Å6V7F–öâÒvf7F÷&–W2rÂ6†÷u6V7F–öåF'2ÒG'VRÒ’Óâ°Ğ¢6öç7B¶7F—fRÂ6WD7F—fUÒÒW6U7FFSÅ67&VVä¶W“â†–æ—F–Å6V7F–öâ“°Ğ¢W6TVffV7B‚‚’Óâ²6WD7F—fR†–æ—F–Å6V7F–öâ“²ÒÂ¶–æ—F–Å6V7F–öåÒ“°Ğ¢W6TVffV7B‚‚’Óâ²6WE6†÷tÖ7FW$f÷&Ò†fÇ6R“²6WDVF—F–ætÖ7FW$VçG'’†çVÆÂ“²6WDVF—F–æt÷væW"†çVÆÂ“²ÒÂ¶7F—fUÒ“°Ğ¢6öç7B·6æ6†÷BÂ6WE6æ6†÷EÒÒW6U7FFSÄÆ—fU6æ6†÷BÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B·v—F–ærÂ6WEv—F–æuÒÒW6U7FFSÅ&÷uµÓâ…µÒ“°Ğ¢6öç7B·v—F–æuv–æF÷rÂ6WEv—F–æuv–æF÷uÒÒW6U7FFSÅ&÷rÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B¶ÆöF–ærÂ6WDÆöF–æuÒÒW6U7FFR‡G'VR“°Ğ¢6öç7B¶W'&÷"Â6WDW'&÷%ÒÒW6U7FFR‚rr“°Ğ¢6öç7B·7V66W72Â6WE7V66W75ÒÒW6U7FFR‚rr“°Ğ¢6öç7B·6†÷tG&—fW$f÷&ÒÂ6WE6†÷tG&—fW$f÷&ÕÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B·6†÷ufV†–6ÆTf÷&ÒÂ6WE6†÷ufV†–6ÆTf÷&ÕÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B¶G&—fW$æÖRÂ6WDG&—fW$æÖUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW%†öæRÂ6WDG&—fW%†öæUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW%FV×÷&'•77v÷&BÂ6WDG&—fW%FV×÷&'•77v÷&EÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW%FV×÷&'•77v÷&D6öæf—&ÖF–öâÂ6WDG&—fW%FV×÷&'•77v÷&D6öæf—&ÖF–öåÒÒW6U7FFR‚rr“°Ğ¢6öç7B·VæF–æt66÷VçBÂ6WEVæF–æt66÷VçEÒÒW6U7FFSÇ²G&—fW$–C¢7G&–æs²æÖS¢7G&–ærÒÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B·&WG'––æt–çf—FRÂ6WE&WG'––æt–çf—FUÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B·77v÷&E&W6WDG&—fW"Â6WE77v÷&E&W6WDG&—fW%ÒÒW6U7FFSÅ&÷rÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B¶æWtG&—fW%77v÷&BÂ6WDæWtG&—fW%77v÷&EÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶6öæf—&ÔG&—fW%77v÷&BÂ6WD6öæf—&ÔG&—fW%77v÷&EÒÒW6U7FFR‚rr“°Ğ¢6öç7B·&W6WGF–æu77v÷&BÂ6WE&W6WGF–æu77v÷&EÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B¶G&—fW$6öFRÂ6WDG&—fW$6öFUÒÒW6U7FFR‚rr“°Ğ¢6öç7B·fV†–6ÆU6V&6‚Â6WEfV†–6ÆU6V&6…ÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW%6V&6‚Â6WDG&—fW%6V&6…ÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶VçF—G•6V&6‚Â6WDVçF—G•6V&6…ÒÒW6U7FFR‚rr“°Ğ¢6öç7B·6†÷tÖ7FW$f÷&ÒÂ6WE6†÷tÖ7FW$f÷&ÕÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B¶VF—F–ætÖ7FW$VçG'’Â6WDVF—F–ætÖ7FW$VçG'•ÒÒW6U7FFSÅ&÷rÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B¶Ö7FW$f÷&ÒÂ6WDÖ7FW$f÷&ÕÒÒW6U7FFR‡²æÖS¢rrÂ6öFS¢rrÂFG&W73¢rrÂ†öæS¢rrÂ—5ö7F—fS¢G'VRÒ“°Ğ¢6öç7B·6f–ætÖ7FW"Â6WE6f–ætÖ7FW%ÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B·6VÆV7FVEfV†–6ÆT–BÂ6WE6VÆV7FVEfV†–6ÆT–EÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶f–Æ&ÆUfV†–6ÆW2Â6WDf–Æ&ÆUfV†–6ÆW5ÒÒW6U7FFSÅ&÷uµÓâ…µÒ“°Ğ¢6öç7B¶÷væW$F—&V7F÷'’Â6WD÷væW$F—&V7F÷'•ÒÒW6U7FFSÅ&÷uµÓâ…µÒ“°Ğ¢6öç7B¶VF—F–æt÷væW"Â6WDVF—F–æt÷væW%ÒÒW6U7FFSÅ&÷rÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B¶÷væW$VF—DæÖRÂ6WD÷væW$VF—DæÖUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶÷væW$VF—E†öæRÂ6WD÷væW$VF—E†öæUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶VF—F–ætG&—fW"Â6WDVF—F–ætG&—fW%ÒÒW6U7FFSÅ&÷rÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B¶G&—fW$VF—DæÖRÂ6WDG&—fW$VF—DæÖUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW$VF—E†öæRÂ6WDG&—fW$VF—E†öæUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW$VF—D6öFRÂ6WDG&—fW$VF—D6öFUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW$VF—EfV†–6ÆT–BÂ6WDG&—fW$VF—EfV†–6ÆT–EÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶G&—fW$VF—EfV†–6ÆW2Â6WDG&—fW$VF—EfV†–6ÆW5ÒÒW6U7FFSÅ&÷uµÓâ…µÒ“°Ğ¢6öç7B¶G&—fW$VF—D÷F–öç4ÆöFVBÂ6WDG&—fW$VF—D÷F–öç4ÆöFVEÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B¶VF—F–æufV†–6ÆRÂ6WDVF—F–æufV†–6ÆUÒÒW6U7FFSÅ&÷rÂçVÆÃâ†çVÆÂ“°Ğ¢6öç7B·fV†–6ÆTVF—EÆFRÂ6WEfV†–6ÆTVF—EÆFUÒÒW6U7FFR‚rr“°Ğ¢6öç7B·fV†–6ÆTVF—D6öFRÂ6WEfV†–6ÆTVF—D6öFUÒÒW6U7FFR‚rr“°Ğ¢6öç7B·fV†–6ÆTVF—D÷væW$–BÂ6WEfV†–6ÆTVF—D÷væW$–EÒÒW6U7FFR‚rr“°Ğ¢6öç7B·fV†–6ÆT÷væW$ÖöFRÂ6WEfV†–6ÆT÷væW$ÖöFUÒÒW6U7FFSÂvW†—7F–ærrÂvæWrsâ‚vW†—7F–ærr“°Ğ¢6öç7B¶æWt÷væW$æÖRÂ6WDæWt÷væW$æÖUÒÒW6U7FFR‚rr“°Ğ¢6öç7B¶æWt÷væW%†öæRÂ6WDæWt÷væW%†öæUÒÒW6U7FFR‚rr“°Ğ¢6öç7B·6f–ætVF—BÂ6WE6f–ætVF—EÒÒW6U7FFR†fÇ6R“°Ğ¢6öç7B·6f–ætG&—fW"Â6WE6f–ætG&—fW%ÒÒW6U7FFR†fÇ6R“°Ğ Ğ¢6öç7BÆöBÒW6T6ÆÆ&6²†7–æ2‚’Óâ°Ğ¢6WDÆöF–ær‡G'VR“°Ğ¢6WDW'&÷"‚rr“°Ğ¢G'’°Ğ¢6öç7B¶FFÂF—&V7F÷'•&W7VÇBÂv—F–æu&W7VÇEÒÒv—B&öÖ—6RæÆÂ…°Ğ¢vWDÆ—fU6æ6†÷B‚’ÀĞ¢7W&6Rç'2‚vÖ–åööff–6UövWEöF—&V7F÷'’r’ÀĞ¢7W&6Rç'2‚vvWEööff–6U÷v—F–æuöÆ—7Br’ÀĞ¢Ò“°Ğ¢–b†F—&V7F÷'•&W7VÇBæW'&÷"’F‡&÷rF—&V7F÷'•&W7VÇBæW'&÷#°Ğ¢–b‡v—F–æu&W7VÇBæW'&÷"’F‡&÷rv—F–æu&W7VÇBæW'&÷#°Ğ¢ÆWBÆ—fTFFÒFF°Ğ¢–b†7F—fRÓÓÒv7GVÂr’°Ğ¢6öç7B&W÷'G5&W7VÇBÒv—B7W&6Rç'2‚vvWE÷fV†–6ÆUö÷væW%÷&W÷'G2rÂ²ög&öÓ¢çVÆÂÂ÷Fó¢çVÆÂÒ“°Ğ¢–b‡&W÷'G5&W7VÇBæW'&÷"’F‡&÷r&W÷'G5&W7VÇBæW'&÷#°Ğ¢Æ—fTFFÒ°Ğ¢ââæFFÀĞ¢7GVÅöÆöF–æu÷&V6÷&G3¢'&’æ—4'&’‡&W÷'G5&W7VÇBæFFòçG&—2’ò&W÷'G5&W7VÇBæFFçG&—2¢µÒÀĞ¢Ó°Ğ¢ĞĞ¢6öç7BF—&V7F÷'’ÒF—&V7F÷'•&W7VÇBæFFóò·Ó°Ğ¢6öç7Bf7F÷&–W2Ò†F—&V7F÷'’æf7F÷&–W2óòµÒ’æÖ‚‡#¢&÷r’Óâ‡²f7F÷'•ö–C¢"æ–BÂ6öFS¢"æ6öFRÂf7F÷'•ö6öFS¢"æ6öFRÂæÖS¢"ææÖRÂæ÷FW3¢"ææ÷FW2Â—5ö7F—fS¢"æ—5ö7F—fRÒ’“°Ğ¢6öç7BV'&–W2Ò†F—&V7F÷'’çV'&–W2óòµÒ’æÖ‚‡#¢&÷r’Óâ‡²V''•ö–C¢"æ–BÂ6öFS¢"æ6öFRÂV''•ö6öFS¢"æ6öFRÂæÖS¢"ææÖRÂæ÷FW3¢"ææ÷FW2Â—5ö7F—fS¢"æ—5ö7F—fRÂÆF—GVFS¢"æÆF—GVFRÂÆöæv—GVFS¢"æÆöæv—GVFRÒ’“°Ğ¢6öç7B÷væW$'”–BÒæWrÖÇ7G&–ærÂ&÷sâ‚†F—&V7F÷'’æ÷væW'2óòµÒ’æÖ‚†÷væW#¢&÷r’Óâµ7G&–ær†÷væW"æ–B’Â÷væW%Ò2·7G&–ærÂ&÷uÒ’“°Ğ¢6öç7BfV†–6ÆW2Ò†F—&V7F÷'’çfV†–6ÆW2óòµÒ’æÖ‚‡#¢&÷r’Óâ²6öç7BÆ–æ¶VD÷væW"Ò÷væW$'”–BævWB‡"æ÷væW%ö–B“²&WGW&â‡²fV†–6ÆUö–C¢"æ–BÂfV†–6ÆUö6öFS¢"æ6öFRÂÆFUöçVÖ&W#¢"çÆFUöçVÖ&W"Â÷væW%ö–C¢"æ÷væW%ö–BÂ÷væW%öæÖS¢"æ÷væW%öæÖRóòÆ–æ¶VD÷væW#òææÖRóòçVÆÂÂ÷væW%ö6öFS¢"æ÷væW%ö6öFRóòÆ–æ¶VD÷væW#òæ6öFRóòçVÆÂÂ÷væW%÷†öæS¢"æ÷væW%÷†öæRóòÆ–æ¶VD÷væW#òç†öæRóòçVÆÂÂöff–6Uö–C¢"æöff–6Uö–BÂ—5ö7F—fS¢"æ—5ö7F—fRÂ76–væVEöG&—fW'3¢'&’æ—4'&’‡"æ76–væVEöG&—fW'2’ò"æ76–væVEöG&—fW'2¢‡"æ76–væVEöG&—fW%ö–Bò·²–C¢"æ76–væVEöG&—fW%ö–BÂæÖS¢"æ76–væVEöG&—fW%öæÖRÕÒ¢µÒ’Ò“²Ò“°Ğ¢6öç7BfV†–6ÆT'”–BÒæWrÖÇ7G&–ærÂ&÷sâ‡fV†–6ÆW2æÖ‚‡fV†–6ÆS¢&÷r’Óâµ7G&–ær‡fV†–6ÆRçfV†–6ÆUö–B’ÂfV†–6ÆUÒ2·7G&–ærÂ&÷uÒ’“°Ğ¢6öç7BG&—fW'2Ò†F—&V7F÷'’æG&—fW'2óòµÒ’æÖ‚‡#¢&÷r’Óâ‡²G&—fW%ö–C¢"æ–BÂG&—fW%ö6öFS¢"æ6öFRÂ6öFS¢"æ6öFRÂæÖS¢"ææÖRÂ†öæS¢"ç†öæRÂöff–6Uö–C¢"æöff–6Uö–BÂ—5ö7F—fS¢"æ—5ö7F—fRÂfV†–6ÆUö–C¢"çfV†–6ÆUö–BÂfV†–6ÆUö6öFS¢"çfV†–6ÆUö6öFRÂÆFUöçVÖ&W#¢"çÆFUöçVÖ&W"ÂfV†–6ÆUö÷væW%öæÖS¢fV†–6ÆT'”–BævWB…7G&–ær‡"çfV†–6ÆUö–B’“òæ÷væW%öæÖRóòçVÆÂÒ’“°Ğ¢6WE6æ6†÷B‡²ââæÆ—fTFFÂf7F÷&–W2ÂV'&–W2ÂG&—fW'2ÂfV†–6ÆW2Ò“°Ğ¢6WEv—F–ær„'&’æ—4'&’‡v—F–æu&W7VÇBæFFòæVçG&–W2’òv—F–æu&W7VÇBæFFæVçG&–W2¢µÒ“°Ğ¢6WEv—F–æuv–æF÷r‡v—F–æu&W7VÇBæFFòç6VÆV7F–öå÷v–æF÷róòçVÆÂ“°Ğ¢6WDf–Æ&ÆUfV†–6ÆW2‡fV†–6ÆW2æf–ÇFW"‚‡c¢&÷r’Óâbæ—5ö7F—fRÓÒfÇ6R’“°Ğ¢6WD÷væW$F—&V7F÷'’‚†F—&V7F÷'’æ÷væW'2óòµÒ’æÖ‚‡#¢&÷r’Óâ‡²÷væW%ö–C¢"æ–BÂ÷væW%ö6öFS¢"æ6öFRÂæÖS¢"ææÖRÂ†öæS¢"ç†öæRÂ—5ö7F—fS¢"æ—5ö7F—fRÒ’’“°Ğ¢Ò6F6‚†S¢ç’’°Ğ¢6WDW'&÷"†SòæÖW76vRÇÂ}Š­‹‹‹Š­Šİ˜]˜­˜BŠı˜M˜­˜BŠ˜­Š}˜mŠ}Š¢Š}˜M˜]˜=Š­Š‚âr“°Ğ¢Òf–æÆÇ’°Ğ¢6WDÆöF–ær†fÇ6R“°Ğ¢ĞĞ¢ÒÂ¶7F—fUÒ“°Ğ¢W6TVffV7B‚‚’Óâ²fö–BÆöB‚“²ÒÂ¶ÆöEÒ“°Ğ Ğ¢6öç7B&Vg&W6…v—F–æuVWVRÒW6T6ÆÆ&6²†7–æ2‚’Óâ°Ğ¢6öç7B²FFÂW'&÷#¢v—F–ætW'&÷"ÒÒv—B7W&6Rç'2‚vvWEööff–6U÷v—F–æuöÆ—7Br“°Ğ¢–b‡v—F–ætW'&÷"’°Ğ¢6WDW'&÷"‡v—F–ætW'&÷"æÖW76vRÇÂ}Š­‹‹‹Š­ŠİŠı˜­Š²˜-Š}Šm˜]Š’Š}˜MŠ}˜mŠ­‹Š}‹âr“°Ğ¢&WGW&ã°Ğ¢ĞĞ¢6WEv—F–ær„'&’æ—4'&’†FFòæVçG&–W2’òFFæVçG&–W2¢µÒ“°Ğ¢6WEv—F–æuv–æF÷r†FFòç6VÆV7F–öå÷v–æF÷róòçVÆÂ“°Ğ¢ÒÂµÒ“°Ğ Ğ¢W6TVffV7B‚‚’Óâ°Ğ¢–b†7F—fRÓÒwv—F–ærr’&WGW&ã°Ğ¢fö–B&Vg&W6…v—F–æuVWVR‚“°Ğ¢6öç7BF–ÖW"Òv–æF÷rç6WD–çFW'fÂ‚‚’Óâfö–B&Vg&W6…v—F–æuVWVR‚’Â“°Ğ¢&WGW&â‚’Óâv–æF÷ræ6ÆV$–çFW'fÂ‡F–ÖW"“°Ğ¢ÒÂ¶7F—fRÂ&Vg&W6…v—F–æuVWVUÒ“°Ğ Ğ¢7–æ2gVæ7F–öâFDF—&V7F÷'”VçF—G’†¶–æC¢vf7F÷&–W2rÂwV'&–W2r’°Ğ¢6öç7B—4f7F÷'’Ò¶–æBÓÓÒvf7F÷&–W2s°Ğ¢6öç7BÆ&VÂÒ—4f7F÷'’ò}Š}˜M‹˜]˜­˜BòŠ}˜M˜]‹]˜m‹’r¢}Š}˜M˜]ŠİŠÍ‹s°Ğ¢6öç7BæÖRÒv–æF÷rç&ö×B†Š}˜=Š­Š‚Š}‹=˜RG¶Æ&VÇÓ¦“°Ğ¢–b‚æÖSòçG&–Ò‚’’&WGW&ã°Ğ¢6öç7B6öFRÒv–æF÷rç&ö×B†Š}˜=Š­Š‚˜=˜ŠòG¶Æ&VÇÒ˜]‹}˜M˜Š‚˜˜‹˜­Šò“¦’ÇÂrs°Ğ¢6WDW'&÷"‚rr“°Ğ¢6WE7V66W72‚rr“°Ğ¢6WE6f–ætVF—B‡G'VR“°Ğ¢G'’°Ğ¢–b‚6öFRçG&–Ò‚’’F‡&÷ræWrW'&÷"‚}˜MŠ}‹-˜RŠ­ŠıŠí˜B˜=˜Šò˜Š}‹mŠÒ˜˜‹˜­Šò˜M˜M‹=ŠÍ˜Bâr“°Ğ¢6öç7B²FFÂW'&÷#¢–ç6W'DW'&÷"ÒÒv—B7W&6Rç'2‚vÖ–åööff–6U÷W6W'EöF—&V7F÷'’rÂ°Ğ¢öVçF—G•÷G—S¢¶–æBÓÓÒvf7F÷&–W2ròtd5Dõ%’r¢uT%%’rÀĞ¢öæÖS¢æÖRçG&–Ò‚’ÀĞ¢ö6öFS¢6öFRçG&–Ò‚’ÀĞ¢öæ÷FW3¢çVÆÂÀĞ¢ö—5ö7F—fS¢G'VRÀĞ¢Ò“°Ğ¢–b†–ç6W'DW'&÷"’F‡&÷r–ç6W'DW'&÷#°Ğ¢–b‚FFòæ–B’F‡&÷ræWrW'&÷"‚}Š­‹‹‹Š­Š=˜=˜­ŠòŠ]‹mŠ}˜Š’Š}˜M‹=ŠÍ˜Bâr“°Ğ¢6WE7V66W72†Š­˜]Š¢Š]‹mŠ}˜Š’G¶Æ&VÇÒŠ˜mŠÍŠ}ŠÒæ“°Ğ¢6WDVçF—G•6V&6‚‚rr“°Ğ¢v—BÆöB‚“°Ğ¢Ò6F6‚†S¢ç’’°Ğ¢6WDW'&÷"†SòæÖW76vRÇÂŠ­‹‹‹Š¢Š]‹mŠ}˜Š’G¶Æ&VÇÒâ‹Š}ŠÍ‹’‹]˜MŠ}Šİ˜­Š}Š¢Šİ‹=Š}Š‚Š}˜M˜]˜=Š­Š‚˜‹=˜­Š}‹=Š’˜-Š}‹ŠıŠ’Š}˜MŠ˜­Š}˜mŠ}Š¢æ“°Ğ¢Òf–æÆÇ’°Ğ¢6WE6f–ætVF—B†fÇ6R“°Ğ¢ĞĞ¢ĞĞ Ğ¢7–æ2gVæ7F–öâ6WDÖ7FW$F—&V7F÷'”7F—fR‡&÷s¢&÷r’°Ğ¢6öç7B—4f7F÷'’Ò7F—fRÓÓÒvf7F÷&–W2s°Ğ¢6öç7BVçF—G•G—RÒ—4f7F÷'’òtd5Dõ%’r¢uT%%’s°Ğ¢6öç7BVçF—G”–BÒ—4f7F÷'’ò&÷ræf7F÷'•ö–B¢&÷rçV''•ö–C°Ğ¢6öç7BÆ&VÂÒ—4f7F÷'’ò}Š}˜M‹˜]˜­˜BòŠ}˜M˜]‹]˜m‹’r¢}Š}˜M˜]ŠİŠÍ‹òŠ}˜M˜]˜‹Šòs°Ğ¢6öç7BæW‡D7F—fRÒ&÷ræ—5ö7F—fRÓÓÒfÇ6S°Ğ¢–b‚VçF—G”–B’²6WDW'&÷"‚}Š­‹‹‹Š­ŠİŠı˜­ŠòŠ}˜M‹=ŠÍ˜BŠ}˜M˜]‹}˜M˜Š‚âŠİŠı™Š²Š}˜M˜-Š}Šm˜]Š’˜ŠİŠ}˜˜B˜]‹Š’Š=Ší‹˜’âr“²&WGW&ã²ĞĞ¢–b‚v–æF÷ræ6öæf—&Ò†æW‡D7F—fPĞ¢òŠ­Š=˜=˜­ŠòŠ]‹Š}ŠıŠ’Š­˜‹˜­˜BG¶Æ&VÇÒG¶Æ—fTæÖR‡&÷r—İ‰ö Ğ¢¢Š­Š=˜=˜­ŠòŠ]˜­˜-Š}˜G¶Æ&VÇÒG¶Æ—fTæÖR‡&÷r—İ‰ò‹=˜­‹˜B˜]Šİ˜˜‹˜½Šr˜˜¢Š­Š}‹˜­ŠâŠ}˜M˜m˜-˜MŠ}Š¢Š}˜M˜-Šı˜­˜]ŠˆÂ˜˜M˜b˜­‹˜}‹‹m˜]˜bŠ}˜M‹=ŠÍ˜MŠ}Š¢Š}˜M˜m‹M‹}Š’æ’’&WGW&ã°Ğ¢6WDW'&÷"‚rr“²6WE7V66W72‚rr“²6WE6f–ætVF—B‡G'VR“°Ğ¢G'’°Ğ¢6öç7B²FFÂW'&÷#¢'4W'&÷"ÒÒv—B7W&6Rç'2‚vÖ–åööff–6U÷6WEöF—&V7F÷'•ö7F—fRrÂ°Ğ¢öVçF—G•÷G—S¢VçF—G•G—RÂöVçF—G•ö–C¢VçF—G”–BÂö—5ö7F—fS¢æW‡D7F—fRÀĞ¢Ò“°Ğ¢–b‡'4W'&÷"’F‡&÷r'4W'&÷#°Ğ¢–b‚FFòæ–BÇÂFFæ—5ö7F—fRÓÒæW‡D7F—fR’F‡&÷ræWrW'&÷"‚}Š­‹‹‹Š­Š=˜=˜­ŠòŠ­‹­˜­˜­‹ŠİŠ}˜MŠ’Š}˜M‹=ŠÍ˜Bâr“°Ğ¢6WE7V66W72†æW‡D7F—fRòŠ­˜RŠ­˜‹˜­˜BG¶Æ&VÇÒæ¢Š­˜RŠ]˜­˜-Š}˜G¶Æ&VÇÒ˜]‹’Š}˜MŠ}ŠİŠ­˜Š}‹‚ŠŠ}˜M‹=ŠÍ˜MŠ}Š¢Š}˜MŠ­Š}‹˜­Ší˜­Š’æ“°Ğ¢v—BÆöB‚“°Ğ¢Ò6F6‚†S¢ç’’°Ğ¢6öç7B&rÒ7G&–ær†SòæÖW76vRÇÂrr“°Ğ¢6öç7BÖW76vW3¢&V6÷&CÇ7G&–ærÂ7G&–æsâÒ°Ğ¢TåD•E•ôäõEôdõTäC¢}Š}˜M‹=ŠÍ˜B‹­˜­‹˜]˜ŠÍ˜ŠòâŠİŠı™Š²Š}˜M˜-Š}Šm˜]Š’˜ŠİŠ}˜˜B˜]‹Š’Š=Ší‹˜’ârÀĞ¢Ô”åôôdd”4Uô44U55õ$UT•$TC¢}Š­‹­˜­˜­‹ŠİŠ}˜MŠ’Š}˜M‹=ŠÍ˜B˜]Š­Š}ŠÒ˜M˜M˜]˜=Š­Š‚Š}˜M‹Šm˜­‹=˜¢˜˜-‹rârÀĞ¢UD…õ$UT•$TC¢}Š}˜mŠ­˜}Š¢ŠÍ˜M‹=Š’Š}˜M˜]˜=Š­Š‚â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜]‹Š’Š=Ší‹˜’ârÀĞ¢Ó°Ğ¢6öç7B¶W’Òö&¦V7Bæ¶W—2†ÖW76vW2’æf–æB†6öFRÓâ&ræ–æ6ÇVFW2†6öFR’“°Ğ¢6WDW'&÷"†¶W’òÖW76vW5¶¶W•Ò¢‡&rÇÂ}Š­‹‹‹Š­‹­˜­˜­‹ŠİŠ}˜MŠ’Š}˜M‹=ŠÍ˜Bâr’“°Ğ¢Òf–æÆÇ’²6WE6f–ætVF—B†fÇ6R“²ĞĞ¢ĞĞ Ğ¢7–æ2gVæ7F–öâ6æ6VÄF—&V7F÷'”VçF—G’†VçF—G•G—S¢td5Dõ%’rÂuT%%’rÂtE$•dU"rÂudT„”4ÄRrÂ&÷s¢&÷r’°Ğ¢6öç7B–FVçF—G“¢&V6÷&CÇG—VöbVçF—G•G—RÂ²–C¢7G&–æs²6öFS¢7G&–æs²Æ&VÃ¢7G&–ærÓâÒ°Ğ¢d5Dõ%“¢²–C¢7G&–ær‡&÷ræf7F÷'•ö–Bóòrr’Â6öFS¢7G&–ær‡&÷ræf7F÷'•ö6öFRóò&÷ræ6öFRóòrr’ÂÆ&VÃ¢}Š}˜M˜]‹]˜m‹’rÒÀĞ¢T%%“¢²–C¢7G&–ær‡&÷rçV''•ö–Bóòrr’Â6öFS¢7G&–ær‡&÷rçV''•ö6öFRóò&÷ræ6öFRóòrr’ÂÆ&VÃ¢}Š}˜M˜]ŠİŠÍ‹rÒÀĞ¢E$•dU#¢²–C¢7G&–ær‡&÷ræG&—fW%ö–Bóòrr’Â6öFS¢7G&–ær‡&÷ræG&—fW%ö6öFRóò&÷ræ6öFRóòrr’ÂÆ&VÃ¢}Š}˜M‹=Š}Šm˜"rÒÀĞ¢dT„”4ÄS¢²–C¢7G&–ær‡&÷rçfV†–6ÆUö–Bóòrr’Â6öFS¢7G&–ær‡&÷rçfV†–6ÆUö6öFRóòrr’ÂÆ&VÃ¢}Š}˜M‹‹Š˜­Š’rÒÀĞ¢Ó°Ğ¢6öç7B—FVÒÒ–FVçF—G•¶VçF—G•G—UÓ°Ğ¢–b‚—FVÒæ–BÇÂ—FVÒæ6öFR’²6WDW'&÷"‚}Š­‹‹‹Š­ŠİŠı˜­Šò˜=˜ŠòŠ}˜M‹=ŠÍ˜BâŠİŠı™Š²Š}˜M˜-Š}Šm˜]Š’˜ŠİŠ}˜˜B˜]‹Š’Š=Ší‹˜’âr“²&WGW&ã²ĞĞ¢–b‚v–æF÷ræ6öæf—&Ò†Š]˜M‹­Š}Š˜m˜}Š}Šm˜¢˜M˜G¶—FVÒæÆ&VÇÒG·&÷rææÖRóò&÷rçÆFUöçVÖ&W"óòrwİ‰ò‹=˜­ŠíŠ­˜˜¢˜]˜bŠ}˜M˜-˜Š}Šm˜]ˆÂ˜˜­‹˜B˜]Šİ˜˜‹˜½Šr˜˜¢Š}˜M‹=ŠÍ˜MŠ}Š¢Š}˜M˜-Šı˜­˜]ŠˆÂ˜˜MŠr˜­˜]˜=˜bŠ]‹Š}ŠıŠ’Š}‹=Š­ŠíŠıŠ}˜R˜=˜Šı˜ræ’’&WGW&ã°Ğ¢6öç7B6öæf—&ÖF–öâÒv–æF÷rç&ö×B†Š­Š=˜=˜­ŠòŠ½Š}˜m˜Ó¢Š}˜=Š­Š‚Š}˜M˜m‹R˜=˜]Šr˜}˜‚˜MŠ]˜M‹­Š}ŠŠ}˜M‹=ŠÍ˜B˜m˜}Š}Šm˜­˜½Šs¥Æä4ä4TÂG¶VçF—G•G—WÒG¶—FVÒæ6öFWÖ“°Ğ¢–b†6öæf—&ÖF–öâÓÒ4ä4TÂG¶VçF—G•G—WÒG¶—FVÒæ6öFWÖ’°Ğ¢–b†6öæf—&ÖF–öâÓÒçVÆÂ’6WDW'&÷"‚}˜M˜R˜­Š­‹}Š}Š˜"˜m‹RŠ}˜MŠ­Š=˜=˜­Šı‰²˜M˜R˜­Š­˜RŠ}˜MŠ]˜M‹­Š}Šâr“°Ğ¢&WGW&ã°Ğ¢ĞĞ¢6WDW'&÷"‚rr“²6WE7V66W72‚rr“²6WE6f–ætVF—B‡G'VR“°Ğ¢G'’°Ğ¢6öç7B²FFÂW'&÷#¢'4W'&÷"ÒÒv—B7W&6Rç'2‚vÖ–åööff–6Uö6æ6VÅöF—&V7F÷'•öVçF—G’rÂ°Ğ¢öVçF—G•÷G—S¢VçF—G•G—RÂöVçF—G•ö–C¢—FVÒæ–BÂö6öæf—&ÖF–öã¢6öæf—&ÖF–öâÀĞ¢Ò“°Ğ¢–b‡'4W'&÷"’F‡&÷r'4W'&÷#°Ğ¢–b‚FFòæ6æ6VÆÆVB’F‡&÷ræWrW'&÷"‚}Š­‹‹‹Š­Š=˜=˜­ŠòŠ}˜MŠ]˜M‹­Š}ŠŠ}˜M˜m˜}Š}Šm˜¢âr“°Ğ¢6WE7V66W72†Š­˜RŠ]˜M‹­Š}ŠG¶—FVÒæÆ&VÇÒ˜m˜}Š}Šm˜­˜½ŠrâŠ}ŠíŠ­˜˜’˜]˜bŠ}˜M˜-˜Š}Šm˜R˜˜=˜Šı˜rG¶—FVÒæ6öFWÒ˜]ŠİŠÍ˜‹"˜M˜M‹=ŠÍ˜MŠ}Š¢Š}˜MŠ­Š}‹˜­Ší˜­Š’æ“°Ğ¢v—BÆöB‚“°Ğ¢Ò6F6‚†S¢ç’’°Ğ¢6öç7B&rÒ7G&–ær†SòæÖW76vRóòrr“°Ğ¢6öç7BÖW76vW3¢&V6÷&CÇ7G&–ærÂ7G&–æsâÒ°Ğ¢TåD•E•ô„5ôõTåôÄôEôõ$DU%3¢}˜MŠr˜­˜]˜=˜bŠ]˜M‹­Š}ŠŠ}˜M˜]‹]˜m‹’Š=˜‚Š}˜M˜]ŠİŠÍ‹˜-Š˜BŠ]˜m˜}Š}ŠŠ=˜Š}˜]‹Š}˜MŠ­Šİ˜]˜­˜BŠ}˜M˜]˜Š­˜ŠİŠ’Š}˜M˜]‹Š­Š‹}Š’Š˜rârÀĞ¢TåD•E•ô„5ô5D•dUô$ôô´”äs¢}˜MŠr˜­˜]˜=˜bŠ]˜M‹­Š}ŠŠ}˜M‹=ŠÍ˜B˜-Š˜BŠ]˜m˜}Š}ŠŠ}˜M˜m˜-˜MŠ}Š¢Š}˜M˜m‹M‹}Š’Š}˜M˜]‹Š­Š‹}Š’Š˜rârÀĞ¢TåD•E•ô•5ô”åôD•5D4…õTUTS¢}˜MŠr˜­˜]˜=˜bŠ]˜M‹­Š}ŠŠ}˜M‹=Š}Šm˜"˜˜}˜‚˜˜¢˜-Š}Šm˜]Š’Š}˜MŠ}˜mŠ­‹Š}‹Š=˜‚˜MŠı˜­˜rŠ}ŠíŠ­˜­Š}‹Š­˜‹-˜­‹’˜-Š}Šm˜RârÀĞ¢TåD•E•ôÅ$TE•ô4ä4TÄÄTC¢}Š­˜RŠ]˜M‹­Š}Š˜}‹ŠrŠ}˜M‹=ŠÍ˜B˜]˜b˜-Š˜BâŠİŠı™Š²Š}˜M˜-Š}Šm˜]Š’ârÀĞ¢4ä4TÄÄD”ôåô4ôäd•$ÔD”ôåôÔ•4ÔD4ƒ¢}˜M˜R˜­Š­‹}Š}Š˜"˜m‹RŠ}˜MŠ­Š=˜=˜­Šı‰²˜M˜R˜­Š­˜RŠ}˜MŠ]˜M‹­Š}ŠârÀĞ¢TåD•E•ôäõEôdõTäC¢}Š}˜M‹=ŠÍ˜B‹­˜­‹˜]˜ŠÍ˜ŠòâŠİŠı™Š²Š}˜M˜-Š}Šm˜]Š’˜ŠİŠ}˜˜B˜]‹Š’Š=Ší‹˜’ârÀĞ¢Ó°Ğ¢6öç7B¶W’Òö&¦V7Bæ¶W—2†ÖW76vW2’æf–æB†6öFRÓâ&ræ–æ6ÇVFW2†6öFR’“°Ğ¢6WDW'&÷"†¶W’òÖW76vW5¶¶W•Ò¢&rÇÂ}Š­‹‹‹Š]˜M‹­Š}ŠŠ}˜M‹=ŠÍ˜B˜m˜}Š}Šm˜­˜½Šrâr“°Ğ¢Òf–æÆÇ’²6WE6f–ætVF—B†fÇ6R“²ĞĞ¢ĞĞ Ğ¢7–æ2gVæ7F–öâ6æ6VÅG&—‡&÷s¢&÷r’°Ğ¢6öç7B&V6öâÒv–æF÷rç&ö×B†Š}˜=Š­Š‚‹=ŠŠ‚Š]˜M‹­Š}ŠŠ}˜M˜m˜-˜MŠ’G·&÷rçG&—ö6öFRóòrwÓ¦“°Ğ¢–b‚&V6öãòçG&–Ò‚’’&WGW&ã°Ğ¢–b‚v–æF÷ræ6öæf—&Ò†Š­Š=˜=˜­ŠòŠ]˜M‹­Š}ŠŠ}˜M˜m˜-˜MŠ’G·&÷rçG&—ö6öFRóòrwİ‰ò‹=Š­‹˜B˜]Šİ˜˜‹Š’˜˜¢Š}˜MŠ­Š}‹˜­ŠâŠ˜m˜‹2Š}˜M˜=˜Šòæ’’&WGW&ã°Ğ¢6WDW'&÷"‚rr“²6WE7V66W72‚rr“²6WE6f–ætVF—B‡G'VR“°Ğ¢G'’°Ğ¢6öç7B²FFÂW'&÷#¢'4W'&÷"ÒÒv—B7W&6Rç'2‚vÖ–åööff–6Uö6æ6VÅö&öö¶–ærrÂ²ö&öö¶–æuö–C¢&÷ræ&öö¶–æuö–BÂ÷&V6öã¢&V6öâçG&–Ò‚’Ò“°Ğ¢–b‡'4W'&÷"’F‡&÷r'4W'&÷#°Ğ¢–b†FFòç7FGW2ÓÒt4ä4TÄÄTBr’F‡&÷ræWrW'&÷"‚}Š­‹‹‹Š­Š=˜=˜­ŠòŠ]˜M‹­Š}ŠŠ}˜M˜m˜-˜MŠ’âr“°Ğ¢6WE7V66W72†Š­˜RŠ]˜M‹­Š}ŠŠ}˜M˜m˜-˜MŠ’G¶FFçG&—ö6öFWÒ˜]‹’Š}˜MŠ}ŠİŠ­˜Š}‹‚Š˜=˜Šı˜}Šr˜‹=ŠÍ˜M˜}Šræ“°Ğ¢v—BÆöB‚“°Ğ¢Ò6F6‚†S¢ç’’°Ğ¢6öç7B&rÒ7G&–ær†SòæÖW76vRóòrr“°Ğ¢6WDW'&÷"‡&ræ–æ6ÇVFW2‚tDTÄ•dU%•ôÅ$TE•ô4ôäd•$ÔTBr’ò}˜MŠr˜­˜]˜=˜bŠ]˜M‹­Š}ŠŠ}˜M˜m˜-˜MŠ’Š‹ŠòŠ­‹=ŠÍ˜­˜BŠ}˜M˜‹-˜bŠ=˜‚Š­Š=˜=˜­ŠòŠ}˜MŠ­‹=˜M˜­˜Râr¢&rÇÂ}Š­‹‹‹Š]˜M‹­Š}ŠŠ}˜M˜m˜-˜MŠ’âr“°Ğ¢Òf–æÆÇ’²6WE6f–ætVF—B†fÇ6R“²ĞĞ¢ĞĞ Ğ¢7–æ2gVæ7F–öâ&VF—&V7EG&—‡&÷s¢&÷r’°Ğ¢6öç7BF&vWG2Ò‡6æ6†÷Còæf7F÷&–W2óòµÒ’æf–ÇFW"‚†f7F÷'“¢&÷r’Óâf7F÷'’æ—5ö7F—fRÓÒfÇ6Rbb7G&–ær†f7F÷'’æf7F÷'•ö–B’ÓÒ7G&–ær‡&÷ræf7F÷'•ö–B’“°Ğ¢–b‚F&vWG2æÆVæwF‚’²6WDW'&÷"‚}˜MŠr˜­˜ŠÍŠò˜]‹]˜m‹’˜m‹M‹rŠ-Ší‹˜]Š­Š}ŠÒ˜M˜MŠ­Šİ˜˜­˜BŠ]˜M˜­˜râr“²&WGW&ã²ĞĞ¢6öç7BF&vWD6öFRÒv–æF÷rç&ö×B†Š}˜=Š­Š‚˜=˜ŠòŠ}˜M˜]‹]˜m‹’Š}˜MŠŠı˜­˜B˜M˜M˜m˜-˜MŠ’G·&÷rçG&—ö6öFRóòrwÓ¥ÆâG·F&}x÷Şí¢G§²ÚîÆ­yßwnerEditName} onChange={e => setOwnerEditName(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" /></label>
           <label className="text-sm font-bold text-slate-700">Ø±Ù‚Ù… Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„<input type="tel" maxLength={40} value={ownerEditPhone} onChange={e => setOwnerEditPhone(e.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 font-normal" /></label>
           <div className="sm:col-span-2 flex flex-wrap gap-3"><button disabled={savingEdit} type="submit" className="rounded-xl bg-teal-600 px-5 py-3 text-sm font-black text-white disabled:opacity-60">{savingEdit ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...' : 'Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø§Ù„Ùƒ'}</button><button type="button" onClick={() => setEditingOwner(null)} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold">Ø¥Ù„ØºØ§Ø¡</button></div>
         </form>
@@ -767,12 +78,9 @@ export const OfficeDirectoryScreen: React.FC<{ initialSection?: ScreenKey; showS
                   setError(Object.entries(messages).find(([code]) => raw.includes(code))?.[1] ?? (raw || 'ØªØ¹Ø°Ø± ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.'));
                 } finally { setSavingEdit(false); }
               }} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold disabled:opacity-50 ${row.is_active === false ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>{row.is_active === false ? 'ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' : 'Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©'}</button>}{(['factories', 'quarries'].includes(active)) && <button type="button" disabled={savingEdit} onClick={() => void setMasterDirectoryActive(row)} aria-label={row.is_active === false ? 'ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø³Ø¬Ù„' : 'Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø¬Ù„'} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold disabled:opacity-50 ${row.is_active === false ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>{row.is_active === false ? 'ØªÙØ¹ÙŠÙ„' : 'Ø¥ÙŠÙ‚Ø§Ù'}</button>}{active === 'owners' && <button type="button" disabled={savingEdit} onClick={() => beginOwnerEdit(row)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700"><Pencil size={10}/> ØªØ¹Ø¯ÙŠÙ„</button>}{active === 'owners' && <button type="button" disabled={savingEdit} onClick={() => void setOwnerActive(row)} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold disabled:opacity-50 ${row.is_active === false ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>{row.is_active === false ? 'ØªÙØ¹ÙŠÙ„ Ø§Ù„Ù…Ø§Ù„Ùƒ' : 'Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù…Ø§Ù„Ùƒ'}</button>}{active === 'drivers' && row.is_active !== false && row.auth_user_id && <button type="button" onClick={() => { setPasswordResetDriver(row); setNewDriverPassword(''); setConfirmDriverPassword(''); setEditingDriver(null); setError(''); setSuccess(''); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-800">ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±</button>}{active === "drivers" && row.is_active !== false && <button type="button" disabled={savingEdit} onClick={() => void deactivateDriver(row)} aria-label="Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ø³Ø§Ø¦Ù‚" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700 disabled:opacity-50"><UserX size={10}/> Ø¥ÙŠÙ‚Ø§Ù</button>}{(active === 'drivers' || active === 'vehicles') && <button type="button" onClick={() => active === 'drivers' ? void beginDriverEdit(row) : beginVehicleEdit(row)} aria-label={active === 'drivers' ? 'ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¦Ù‚' : 'ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©'} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"><Pencil size={10}/> ØªØ¹Ø¯ÙŠÙ„</button>}
-              {active === 'actual' && row.booking_id && !['CANCELLED', 'DELIVERED', 'COMPLETED'].includes(snapshot?.bookings?.find((b: Row) => b.booking_id === row.booking_id)?.status) && !row.delivery_confirmed_at && row.actual_weight == null && <button type="button" onClick={async () => {
-                setError('Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø­Ø¬Ø² Ø§Ù„Ù‚Ø¯ÙŠÙ… ØºÙŠØ± Ù…Ø¯Ø¹ÙˆÙ… ÙÙŠ Phase 1. Ø§Ø³ØªØ®Ø¯Ù… Ø¥Ù„ØºØ§Ø¡ Ø£Ù…Ø± Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø­Ø§Ù„ØªÙ‡ ØªØ³Ù…Ø­ Ø¨Ø°Ù„Ùƒ.');
-              }} className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700">Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ù†Ù‚Ù„Ø©</button>}
-              {active === 'actual' && row.booking_id && snapshot?.bookings?.find((b: Row) => b.booking_id === row.booking_id)?.status !== 'CANCELLED' && <button type="button" onClick={async () => {
-                setError('ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø­Ø¬Ø² ØºÙŠØ± Ù…ØªØ§Ø­ ÙÙŠ Ø¹Ù‚Ø¯ Phase 1 Ø§Ù„Ø­Ø§Ù„ÙŠØ› ØªÙ… ØªØ¹Ø·ÙŠÙ„ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ø§Ù„Ù‚Ø¯ÙŠÙ….');
-              }} className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-800">Ø¥Ø¹Ø§Ø¯Ø© ØªÙˆØ¬ÙŠÙ‡</button>}{active !== 'waiting' && <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">#{index + 1}</span>}</div></div>
+              {['factories', 'quarries', 'drivers', 'vehicles'].includes(active) && <button type="button" disabled={savingEdit} onClick={() => void cancelDirectoryEntity(active === 'factories' ? 'FACTORY' : active === 'quarries' ? 'QUARRY' : active === 'drivers' ? 'DRIVER' : 'VEHICLE', row)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-800 disabled:opacity-50">Ø¥Ù„ØºØ§Ø¡ Ù†Ù‡Ø§Ø¦ÙŠ</button>}
+              {active === 'actual' && row.booking_id && !['CANCELLED', 'DELIVERED', 'COMPLETED'].includes(String(snapshot?.bookings?.find((b: Row) => String(b.booking_id) === String(row.booking_id))?.status ?? row.status ?? '').toUpperCase()) && !row.delivery_confirmed_at && row.actual_weight == null && <button type="button" disabled={savingEdit} onClick={() => void cancelTrip(row)} className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700 disabled:opacity-50">Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ù†Ù‚Ù„Ø©</button>}
+              {active === 'actual' && row.booking_id && !['CANCELLED', 'DELIVERED', 'COMPLETED'].includes(String(snapshot?.bookings?.find((b: Row) => String(b.booking_id) === String(row.booking_id))?.status ?? row.status ?? '').toUpperCase()) && !row.delivery_confirmed_at && row.actual_weight == null && <button type="button" disabled={savingEdit} onClick={() => void redirectTrip(row)} className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-800 disabled:opacity-50">Ø¥Ø¹Ø§Ø¯Ø© ØªÙˆØ¬ÙŠÙ‡</button>}{active !== 'waiting' && <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">#{index + 1}</span>}</div></div>
           </article>)}
           {!loading && rows.length === 0 && <div className="p-10 text-center text-sm leading-6 text-slate-500">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³Ø¬Ù„Ø§Øª ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ù‚Ø³Ù… Ø­Ø§Ù„ÙŠÙ‹Ø§. Ù„Ù† Ù†Ø¹Ø±Ø¶ Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ø¨Ø¯Ù„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠØ©.</div>}
           {loading && <div className="p-8 text-center text-sm text-slate-500">Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ÙƒØªØ¨...</div>}

@@ -247,8 +247,6 @@ export const LiveOperationsBoard: React.FC = () => {
               {([
                 ['dashboard', 'مركز التشغيل', ClipboardList],
                 ['drivers', 'قائمة السائقين', Users],
-                ['factories', 'المصانع والعملاء', Factory],
-                ['quarries', 'المحاجر والموردون', Mountain],
                 ['analytics', 'تحليل البيانات والتقارير', BarChart3],
                 ['vehicleReports', 'حسابات العربيات والملاك', Users],
                 ['factoryStatement', 'كشف حساب المصانع والعملاء', Factory],
