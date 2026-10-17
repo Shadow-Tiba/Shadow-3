@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
-  --tiba-navy: #10243a;
+  color-scheme: dark;
+  --tiba-navy: #071426;
   --tiba-blue: #1769aa;
-  --tiba-teal: #0f9b8e;
-  --tiba-orange: #ef8b24;
-  --tiba-surface: #ffffff;
-  --tiba-canvas: #f3f7fb;
-  --tiba-border: #dce6ef;
+  --tiba-teal: #20c7b5;
+  --tiba-orange: #f2a24a;
+  --tiba-surface: #10243a;
+  --tiba-canvas: #071426;
+  --tiba-border: #294158;
+  --tiba-text: #edf5fb;
+  --tiba-muted: #a8bdcf;
 }
 
 @layer base {
@@ -17,7 +19,7 @@
   body {
     font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--tiba-canvas);
-    color: var(--tiba-navy);
+    color: var(--tiba-text);
     direction: rtl;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -25,14 +27,14 @@
   button, select, textarea, input { font-family: inherit; }
   button { -webkit-tap-highlight-color: transparent; }
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline: 3px solid #60a5fa;
+    outline: 3px solid #20c7b5;
     outline-offset: 2px;
   }
-  ::selection { background: #dbeafe; color: #10243a; }
+  ::selection { background: #145e63; color: #f0fdfa; }
   .font-mono, .tabular-nums { font-family: 'JetBrains Mono', monospace; }
 }
 
-/* Tiba visual system: shared office/driver palette, consistent surfaces, depth, and touch-friendly controls. */
+/* Design A — Dark Premium: deep navy canvas, elevated blue-navy surfaces, restrained teal accents. */
 @layer components {
   #root article, #root aside, #root section {
     scroll-margin-top: 1rem;
@@ -41,27 +43,58 @@
     transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
   }
   #root article:hover {
-    border-color: #b9cfe2;
-    box-shadow: 0 8px 24px rgb(16 36 58 / 7%);
+    border-color: #3c7188 !important;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 22%);
   }
   #root button {
     transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
   }
-  #root button:active:not(:disabled) {
-    transform: translateY(1px);
-  }
+  #root button:active:not(:disabled) { transform: translateY(1px); }
   #root input, #root select, #root textarea {
     border-radius: 0.85rem;
+    border-color: #35516a !important;
+    background-color: #0b1d30 !important;
+    color: #edf5fb !important;
     transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
   }
+  #root input::placeholder, #root textarea::placeholder { color: #8da5ba !important; }
   #root input:focus, #root select:focus, #root textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgb(59 130 246 / 12%);
+    border-color: #20c7b5 !important;
+    box-shadow: 0 0 0 3px rgb(32 199 181 / 16%) !important;
   }
 }
 
+/* Normalize the light utility surfaces used by legacy screens while preserving semantic status colors. */
+@layer utilities {
+  #root .bg-white, #root .bg-white\/90, #root .bg-white\/80, #root .bg-white\/70,
+  #root .bg-slate-50, #root .bg-slate-50\/70, #root .bg-slate-100,
+  #root .bg-gray-50, #root .bg-gray-100 {
+    background-color: #10243a !important;
+  }
+  #root .bg-slate-900, #root .bg-slate-800 { background-color: #0b1d30 !important; }
+  #root .border-slate-100, #root .border-slate-200, #root .border-slate-300,
+  #root .border-gray-100, #root .border-gray-200 {
+    border-color: #294158 !important;
+  }
+  #root .text-slate-950, #root .text-slate-900, #root .text-slate-800,
+  #root .text-slate-700, #root .text-slate-600, #root .text-gray-900,
+  #root .text-gray-800, #root .text-gray-700, #root .text-gray-600 {
+    color: #e5eff7 !important;
+  }
+  #root .text-slate-500, #root .text-slate-400, #root .text-gray-500,
+  #root .text-gray-400 { color: #a8bdcf !important; }
+  #root .bg-teal-50, #root .bg-cyan-50, #root .bg-sky-50, #root .bg-blue-50 {
+    background-color: #123447 !important;
+  }
+  #root .bg-emerald-50, #root .bg-green-50 { background-color: #12392f !important; }
+  #root .bg-amber-50, #root .bg-yellow-50 { background-color: #3b2d1a !important; }
+  #root .bg-red-50, #root .bg-rose-50 { background-color: #3b2029 !important; }
+  #root .text-teal-700, #root .text-teal-800, #root .text-cyan-700,
+  #root .text-cyan-800, #root .text-sky-700 { color: #5ce4d3 !important; }
+}
+
 @media print {
-  body { background: #fff !important; font-size: 12px !important; }
+  body { background: #fff !important; color: #111827 !important; font-size: 12px !important; }
   #root button { display: none !important; }
   #root main, #root section { box-shadow: none !important; }
 }
