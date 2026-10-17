@@ -130,6 +130,18 @@
   #root .bg-teal-100 { background-color: #164b4a !important; }
   #root .text-teal-800 { color: #7be7dc !important; }
   #root .bg-emerald-950 { color: #b8f4d7 !important; }
+  /* Keep legacy dashboard accents readable on the dark surfaces. */
+  #root .border-blue-100, #root .border-blue-200, #root .border-cyan-100,
+  #root .border-cyan-200, #root .border-sky-100, #root .border-sky-200,
+  #root .border-indigo-100, #root .border-indigo-200, #root .border-violet-100,
+  #root .border-violet-200, #root .border-purple-100, #root .border-purple-200,
+  #root .border-emerald-100, #root .border-emerald-200, #root .border-green-100,
+  #root .border-green-200, #root .border-amber-100, #root .border-amber-200,
+  #root .border-orange-100, #root .border-orange-200, #root .border-teal-100,
+  #root .border-teal-200 { border-color: #35516a !important; }
+  #root .text-cyan-800, #root .text-sky-800 { color: #8be8ef !important; }
+  #root .text-amber-900, #root .text-orange-900 { color: #ffe0a8 !important; }
+  #root .bg-emerald-50 { background-color: #12392f !important; }
   #root a[href^="tel:"] { text-decoration: none; }
   #root a[href^="tel:"]:hover { filter: brightness(1.12); }
 }
