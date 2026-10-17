@@ -140,6 +140,18 @@
   #root .border-orange-100, #root .border-orange-200, #root .border-teal-100,
   #root .border-teal-200 { border-color: #35516a !important; }
   #root .text-cyan-800, #root .text-sky-800 { color: #8be8ef !important; }
+  /* Brighten legacy dark-on-light text utilities that become low-contrast on navy surfaces. */
+  #root .text-sky-700, #root .text-sky-900, #root .text-sky-950 { color: #9acbff !important; }
+  #root .text-violet-900, #root .text-violet-950 { color: #d0b5ff !important; }
+  #root .text-amber-950 { color: #ffe0a8 !important; }
+  #root .text-orange-600 { color: #ffbd75 !important; }
+  #root .text-violet-600 { color: #d0b5ff !important; }
+  /* Pale semantic fills need dark equivalents on the Dark Premium theme. */
+  #root .bg-red-100 { background-color: #3b2029 !important; }
+  #root .bg-sky-100 { background-color: #123447 !important; }
+  #root .bg-amber-100 { background-color: #3b2d1a !important; }
+  #root .bg-violet-100 { background-color: #2b2343 !important; }
+  #root .bg-emerald-100, #root .bg-green-100 { background-color: #12392f !important; }
   #root .text-amber-900, #root .text-orange-900 { color: #ffe0a8 !important; }
   #root .bg-emerald-50 { background-color: #12392f !important; }
   #root a[href^="tel:"] { text-decoration: none; }
