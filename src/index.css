@@ -154,6 +154,12 @@
   #root .hover\:bg-gray-100:hover {
     background-color: #17324a !important;
   }
+  #root .hover\:bg-orange-50:hover {
+    background-color: #3b2d1a !important;
+  }
+  #root .bg-amber-50\/60 {
+    background-color: rgb(59 45 26 / 60%) !important;
+  }
   #root .hover\:border-slate-300:hover,
   #root .hover\:border-gray-300:hover {
     border-color: #3c7188 !important;
