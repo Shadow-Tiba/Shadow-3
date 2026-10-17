@@ -223,16 +223,16 @@ export const LiveOperationsBoard: React.FC = () => {
       </header>
 
       <main className="mx-auto max-w-[1440px] space-y-4 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6">
-        {error && <div className="rounded-2xl border border-red-500/30 bg-red-50 p-4 text-sm text-red-800">خطأ: {error}</div>}
+        {error && <div className="rounded-2xl border border-red-400/30 bg-[#3b2029] p-4 text-sm text-rose-100">خطأ: {error}</div>}
 
-        {successMessage && <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50 p-4 text-sm text-emerald-800">{successMessage}</div>}
+        {successMessage && <div className="rounded-2xl border border-emerald-400/30 bg-[#12392f] p-4 text-sm text-emerald-100">{successMessage}</div>}
 
-        {activeScreen === 'dashboard' && (data?.office_notifications ?? []).length > 0 && <section aria-label="تنبيهات المكتب" className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm sm:p-5">
-          <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-700" size={21}/><h2 className="font-black text-slate-900">تنبيهات التشغيل والوزن الفعلي</h2></div>
-          <div className="space-y-2">{(data?.office_notifications ?? []).slice(0, 10).map((notice: Record<string, any>) => <article key={notice.id} className="rounded-xl border border-amber-100 bg-amber-50/60 p-3">
+        {activeScreen === 'dashboard' && (data?.office_notifications ?? []).length > 0 && <section aria-label="تنبيهات المكتب" className="rounded-2xl border border-amber-500/30 bg-[#10243a] p-4 shadow-sm sm:p-5">
+          <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-300" size={21}/><h2 className="font-black text-slate-100">تنبيهات التشغيل والوزن الفعلي</h2></div>
+          <div className="space-y-2">{(data?.office_notifications ?? []).slice(0, 10).map((notice: Record<string, any>) => <article key={notice.id} className="rounded-xl border border-amber-500/20 bg-[#3b2d1a] p-3">
             <div className="font-bold">{notice.title}</div>
-            <p className="mt-1 text-sm leading-6 text-slate-700">{notice.body}</p>
-            <div className="mt-1 text-xs text-slate-500">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</div>
+            <p className="mt-1 text-sm leading-6 text-slate-200">{notice.body}</p>
+            <div className="mt-1 text-xs text-slate-400">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</div>
           </article>)}</div>
         </section>}
 
@@ -446,8 +446,8 @@ export const LiveOperationsBoard: React.FC = () => {
                 <div className="rounded-2xl bg-emerald-50 p-4"><Truck className="h-5 w-5 text-emerald-700" /><b className="block mt-2 text-xl">{todaysActualCount}</b><span className="text-xs text-slate-500">تحميلات اليوم</span></div>
               </div>
             </div>
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-              <div className="text-sm font-black text-emerald-700">قاعدة التشغيل الأساسية</div>
+            <div className="rounded-3xl border border-emerald-500/25 bg-[#12392f] p-5">
+              <div className="text-sm font-black text-emerald-300">قاعدة التشغيل الأساسية</div>
               <div className="mt-2 text-sm text-slate-300">
                 أوامر التحميل تصدر من مكتب الإسماعيلية، وتسجيل وصول السواقين يتم في مكتب رأس سدر. وجود السواق داخل نطاق {checkInRadiusKm} كم وحده لا يضيفه لقائمة الانتظار؛ لازم يسجل وصوله صراحةً.
               </div>
