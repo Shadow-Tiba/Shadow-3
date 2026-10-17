@@ -117,37 +117,37 @@ export const VehicleTrackingScreen: React.FC = () => {
   const recentCount = locations.filter(location => !location.is_stale).length;
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+    <section className="space-y-2.5 text-sm">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between sm:p-3.5">
         <div>
-          <div className="flex items-center gap-2"><MapPin className="text-blue-700" size={22}/><h2 className="text-xl font-black">تتبع السيارات على الخريطة</h2></div>
-          <p className="mt-1 text-sm leading-6 text-slate-500">تُحدَّث الخريطة كل 60 ثانية، بالتزامن مع دورة إرسال موقع السائق. الموقع القديم يظهر بوضوح ولا يُعرض على أنه مباشر.</p>
+          <div className="flex items-center gap-2"><MapPin className="text-blue-700" size={18}/><h2 className="text-base font-black">تتبع السيارات على الخريطة</h2></div>
+          <p className="mt-1 text-xs leading-5 text-slate-500">تُحدَّث الخريطة كل 60 ثانية، بالتزامن مع دورة إرسال موقع السائق. الموقع القديم يظهر بوضوح ولا يُعرض على أنه مباشر.</p>
         </div>
-        <button onClick={() => void loadLocations(true)} disabled={refreshing} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-bold disabled:opacity-60">
+        <button onClick={() => void loadLocations(true)} disabled={refreshing} className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold disabled:opacity-60">
           <RefreshCw size={17} className={refreshing ? 'animate-spin' : ''}/>{refreshing ? 'جاري التحديث' : 'تحديث المواقع'}
         </button>
       </div>
       {error && <div role="alert" className="flex items-start gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><AlertTriangle size={18} className="mt-0.5 shrink-0"/><div><strong>تعذر تحميل التتبع.</strong><p className="mt-1 break-words">{error}</p><p className="mt-1">تأكد من تطبيق ملف الترحيل الجديد في Supabase وربط حساب السائق بسجل السائق والعربية.</p></div></div>}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4"><Truck className="text-blue-700" size={20}/><div className="mt-2 text-2xl font-black">{locations.length}</div><div className="text-xs text-slate-500">سيارات لها موقع محفوظ</div></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4"><MapPin className="text-emerald-600" size={20}/><div className="mt-2 text-2xl font-black">{recentCount}</div><div className="text-xs text-slate-500">موقع حديث (أقل من 10 دقائق)</div></div>
-        <div className="col-span-2 rounded-2xl border border-slate-200 bg-white p-4 sm:col-span-1"><Clock3 className="text-amber-600" size={20}/><div className="mt-2 text-sm font-bold">{loading ? 'جاري التحميل...' : 'تحديث تلقائي كل 60 ثانية'}</div><div className="text-xs text-slate-500">الموقع يحتاج إذن السائق</div></div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-slate-200 bg-white p-2.5"><Truck className="text-blue-700" size={16}/><div className="mt-1 text-lg font-black">{locations.length}</div><div className="text-[11px] leading-4 text-slate-500">سيارات لها موقع محفوظ</div></div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4"><MapPin className="text-emerald-600" size={20}/><div className="mt-2 text-2xl font-black">{recentCount}</div><div className="text-[11px] leading-4 text-slate-500">موقع حديث (أقل من 10 دقائق)</div></div>
+        <div className="rounded-xl border border-slate-200 bg-white p-2.5"><Clock3 className="text-amber-600" size={20}/><div className="mt-1 text-xs font-bold">{loading ? 'جاري التحميل...' : 'تحديث تلقائي كل 60 ثانية'}</div><div className="text-xs text-slate-500">الموقع يحتاج إذن السائق</div></div>
       </div>
-      <div className="rounded-3xl border border-slate-200 bg-white p-3"><label className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2.5"><Search size={18} className="text-slate-500"/><input value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none" placeholder="ابحث برقم اللوحة أو اسم السائق" aria-label="البحث عن عربية على الخريطة"/>{vehicleSearch && <button type="button" onClick={() => setVehicleSearch('')} aria-label="مسح البحث"><X size={17}/></button>}</label><p className="mt-2 text-xs text-slate-500">العربيات الظاهرة: {visibleLocations.length} من {locations.length}</p></div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-2"><label className="flex items-center gap-2 rounded-lg border border-slate-300 px-2.5 py-2"><Search size={18} className="text-slate-500"/><input value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm outline-none" placeholder="ابحث برقم اللوحة أو اسم السائق" aria-label="البحث عن عربية على الخريطة"/>{vehicleSearch && <button type="button" onClick={() => setVehicleSearch('')} aria-label="مسح البحث"><X size={17}/></button>}</label><p className="mt-2 text-xs text-slate-500">العربيات الظاهرة: {visibleLocations.length} من {locations.length}</p></div>
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-        <div ref={mapElement} className="h-[55vh] min-h-[340px] w-full" aria-label="خريطة مواقع السيارات"/>
+        <div ref={mapElement} className="h-[38vh] min-h-[230px] max-h-[430px] w-full" aria-label="خريطة مواقع السيارات"/>
         {!loading && visibleLocations.length === 0 && !error && <div className="border-t border-slate-200 p-5 text-center text-sm leading-6 text-slate-500">{vehicleSearch.trim() ? 'مفيش عربية مطابقة للبحث ضمن العربيات اللي لها موقع مسجل.' : 'لا توجد مواقع سيارات مسجلة حتى الآن. عند تسجيل دخول سائق مع تفعيل إذن الموقع وربط حسابه بعربية، سيظهر موقعه هنا.'}</div>}
       </div>
-      <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-5">
-        <h3 className="font-black">قائمة السيارات</h3>
-        <div className="mt-3 divide-y divide-slate-100">
+      <div className="rounded-2xl border border-slate-200 bg-white p-3">
+        <h3 className="text-sm font-black">قائمة السيارات</h3>
+        <div className="mt-1 divide-y divide-slate-100">
           {visibleLocations.map(location => (
             <button key={location.driver_id} type="button" onClick={() => {
               mapRef.current?.setView([location.latitude, location.longitude], 15);
               markersRef.current[location.driver_id]?.openPopup();
-            }} className="flex w-full items-center justify-between gap-3 py-3 text-right">
-              <div className="min-w-0"><div className="font-bold">{location.plate_number} · {location.driver_name}</div><div className="mt-1 text-xs text-slate-500">آخر تحديث: {timeLabel(location.updated_at)}{location.accuracy_m != null ? ` · دقة ±${Math.round(location.accuracy_m)} م` : ''}</div></div>
-              <span className={location.is_stale ? 'shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700' : 'shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700'}>{location.is_stale ? 'موقع قديم' : 'حديث'}</span>
+            }} className="flex w-full items-center justify-between gap-2 py-2 text-right">
+              <div className="min-w-0"><div className="text-sm font-bold">{location.plate_number} · {location.driver_name}</div><div className="mt-0.5 text-[11px] text-slate-500">آخر تحديث: {timeLabel(location.updated_at)}{location.accuracy_m != null ? ` · دقة ±${Math.round(location.accuracy_m)} م` : ''}</div></div>
+              <span className={location.is_stale ? 'shrink-0 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700' : 'shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700'}>{location.is_stale ? 'موقع قديم' : 'حديث'}</span>
             </button>
           ))}
           {!visibleLocations.length && <p className="py-4 text-sm text-slate-500">{vehicleSearch.trim() ? 'لا توجد نتيجة مطابقة.' : 'لا توجد سيارات لعرضها بعد.'}</p>}
