@@ -364,3 +364,77 @@
   }
   #root .leaflet-control-attribution { background: rgb(255 255 255 / 90%) !important; color: #64748b !important; }
 }
+
+
+/* Design B coverage for legacy branch/driver screens that still use dark utilities. */
+@layer utilities {
+  #root .bg-slate-800, #root .bg-slate-900, #root .bg-slate-950,
+  #root .bg-slate-900\/80, #root .bg-slate-900\/90, #root .bg-slate-950\/95,
+  #root .bg-zinc-800, #root .bg-zinc-900, #root .bg-zinc-950,
+  #root .bg-zinc-900\/40, #root .bg-zinc-900\/60, #root .bg-zinc-900\/90,
+  #root .bg-zinc-950\/80 {
+    background-color: #ffffff !important;
+  }
+  #root .text-slate-100, #root .text-slate-200, #root .text-slate-300,
+  #root .text-zinc-100, #root .text-zinc-200, #root .text-zinc-300,
+  #root .text-zinc-950 { color: #10243a !important; }
+  #root .text-zinc-400, #root .text-zinc-500, #root .text-zinc-600 { color: #64748b !important; }
+  #root .border-slate-600, #root .border-slate-700, #root .border-slate-700\/80,
+  #root .border-slate-800, #root .border-zinc-700, #root .border-zinc-800,
+  #root .divide-zinc-800 > :not(:last-child) { border-color: #dce6ef !important; }
+  #root .bg-emerald-950, #root .bg-emerald-950\/60, #root .bg-emerald-950\/80 {
+    background-color: #e5f8ed !important;
+  }
+  #root .bg-amber-950, #root .bg-amber-950\/40 { background-color: #fff4df !important; }
+  #root .bg-amber-500, #root .bg-amber-600, #root .bg-amber-700,
+  #root .bg-amber-500\/20 { background-color: #fff0d4 !important; }
+  #root .bg-blue-600, #root .bg-sky-700, #root .bg-teal-600, #root .bg-teal-700 {
+    background-color: #dff2ff !important;
+  }
+  #root .bg-emerald-400, #root .bg-emerald-600, #root .bg-emerald-700 { background-color: #d8f5e6 !important; }
+  #root .bg-red-600 { background-color: #ffe3e6 !important; }
+  #root .bg-zinc-900\/40, #root .bg-zinc-900\/60, #root .bg-zinc-900\/90 { background-color: #ffffff !important; }
+  #root .text-amber-100, #root .text-amber-200, #root .text-amber-300,
+  #root .text-amber-400, #root .text-amber-500 { color: #8a4b08 !important; }
+  #root .text-emerald-100, #root .text-emerald-200, #root .text-emerald-300,
+  #root .text-emerald-400, #root .text-emerald-500 { color: #087443 !important; }
+  #root .text-cyan-100, #root .text-cyan-300, #root .text-teal-300 { color: #075e75 !important; }
+  #root .text-rose-100 { color: #a32132 !important; }
+  #root .border-amber-300, #root .border-amber-500, #root .border-amber-500\/20,
+  #root .border-amber-500\/30, #root .border-amber-500\/40, #root .border-amber-500\/50,
+  #root .border-amber-500\/60, #root .border-amber-800 { border-color: #efd19b !important; }
+  #root .border-emerald-300, #root .border-emerald-300\/25, #root .border-emerald-400\/30,
+  #root .border-emerald-500, #root .border-emerald-500\/25, #root .border-emerald-800 {
+    border-color: #b7e5c9 !important;
+  }
+  #root .border-red-100, #root .border-red-300, #root .border-red-400\/30,
+  #root .border-rose-300\/30 { border-color: #f2c2c8 !important; }
+  #root .border-slate-200\/80 { border-color: #dce6ef !important; }
+  #root .from-indigo-950, #root .via-blue-950, #root .to-slate-900,
+  #root .from-slate-950, #root .via-slate-900, #root .to-slate-950 {
+    --tw-gradient-from: #eaf5fc var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(234 245 252 / 0%) var(--tw-gradient-to-position) !important;
+  }
+  #root .bg-gradient-to-b, #root .bg-gradient-to-br, #root .bg-gradient-to-l {
+    color: #10243a;
+  }
+  #root .hover\\:bg-slate-800:hover, #root .hover\\:bg-slate-900:hover,
+  #root .hover\\:bg-zinc-800:hover, #root .hover\\:bg-zinc-900:hover {
+    background-color: #edf3f8 !important;
+  }
+  #root .hover\\:bg-amber-400:hover, #root .hover\\:bg-amber-500:hover,
+  #root .hover\\:bg-amber-500\\/40:hover, #root .hover\\:bg-amber-700:hover {
+    background-color: #fff0d4 !important;
+  }
+  #root .hover\\:bg-emerald-500:hover, #root .hover\\:bg-emerald-800:hover,
+  #root .hover\\:bg-emerald-950:hover { background-color: #d8f5e6 !important; }
+  #root .hover\\:bg-blue-700:hover, #root .hover\\:bg-teal-700:hover,
+  #root .hover\\:bg-teal-800:hover { background-color: #dff2ff !important; }
+  #root .hover\\:bg-red-700:hover, #root .hover\\:bg-red-50:hover { background-color: #ffe3e6 !important; }
+  #root .hover\\:bg-rose-400\\/20:hover { background-color: #fff0f1 !important; }
+  #root .hover\\:text-amber-400:hover, #root .hover\\:text-zinc-950:hover { color: #075e75 !important; }
+  #root .hover\\:border-amber-500\\/80:hover, #root .hover\\:border-slate-400:hover,
+  #root .hover\\:border-violet-300:hover, #root .hover\\:border-zinc-700:hover {
+    border-color: #80cfc5 !important;
+  }
+}
