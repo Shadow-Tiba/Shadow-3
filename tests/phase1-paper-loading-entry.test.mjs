@@ -25,7 +25,8 @@ test("paper loading form validates weight and uses the scoped server RPC", () =>
   assert.match(screen, /weight <= 0 \|\| weight > 1000/);
   assert.match(screen, /p_source_file_name: null/);
   assert.match(screen, /p_source_row_number: null/);
-  assert.match(board, /PaperLoadingEntryScreen/);
+  // The legacy form may remain as an isolated implementation reference, but it must not be mounted in the Main Office workflow.
+  assert.doesNotMatch(board, /PaperLoadingEntryScreen/);
   assert.match(board, /activeScreen === 'actual'/);
 });
 
