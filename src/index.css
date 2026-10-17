@@ -438,3 +438,20 @@
     border-color: #80cfc5 !important;
   }
 }
+
+
+/* Final Design B pass: remove remaining dark gradient endpoints and preserve semantic contrast. */
+@layer utilities {
+  #root .from-blue-700, #root .from-teal-700 { --tw-gradient-from: #eaf5fc var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(234 245 252 / 0%) var(--tw-gradient-to-position) !important; }
+  #root .from-red-50 { --tw-gradient-from: #fff0f1 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(255 240 241 / 0%) var(--tw-gradient-to-position) !important; }
+  #root .from-sky-50 { --tw-gradient-from: #eaf5fc var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(234 245 252 / 0%) var(--tw-gradient-to-position) !important; }
+  #root .to-cyan-500, #root .to-cyan-600 { --tw-gradient-to: #dff7f3 var(--tw-gradient-to-position) !important; }
+  #root .to-emerald-50 { --tw-gradient-to: #e9f8f0 var(--tw-gradient-to-position) !important; }
+  #root .to-orange-50 { --tw-gradient-to: #fff4df var(--tw-gradient-to-position) !important; }
+  #root .bg-blue-400\/10, #root .bg-cyan-400\/10 { background-color: #eaf5fc !important; }
+  #root .bg-emerald-300\/10 { background-color: #e9f8f0 !important; }
+  #root .bg-rose-400\/10 { background-color: #fff0f1 !important; }
+  #root .text-amber-400\/70 { color: #8a4b08 !important; }
+  #root .text-sky-300 { color: #075e75 !important; }
+  #root .ring-sky-100 { --tw-ring-color: #cfe8f7 !important; }
+}
