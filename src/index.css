@@ -159,6 +159,29 @@
     border-color: #3c7188 !important;
   }
 
+
+  /* Match Leaflet map chrome and popups to the Dark Premium dashboard. */
+  #root .leaflet-popup-content-wrapper,
+  #root .leaflet-popup-tip {
+    background: #10243a !important;
+    color: #edf5fb !important;
+    border: 1px solid #35516a;
+    box-shadow: 0 12px 28px rgb(0 0 0 / 32%);
+  }
+  #root .leaflet-popup-content { color: #edf5fb; }
+  #root .leaflet-popup-content a { color: #5ce4d3; }
+  #root .leaflet-bar a,
+  #root .leaflet-bar a:hover {
+    background: #10243a !important;
+    color: #edf5fb !important;
+    border-bottom-color: #35516a !important;
+  }
+  #root .leaflet-control-attribution {
+    background: rgb(7 20 38 / 86%) !important;
+    color: #a8bdcf !important;
+  }
+  #root .leaflet-control-attribution a { color: #5ce4d3 !important; }
+
 @media print {
   body { background: #fff !important; color: #111827 !important; font-size: 12px !important; }
   #root button { display: none !important; }
