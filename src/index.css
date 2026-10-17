@@ -126,6 +126,14 @@
   #root .bg-blue-50, #root .bg-indigo-50 { background-color: #123047 !important; }
   #root .bg-violet-50, #root .bg-purple-50 { background-color: #2b2343 !important; }
   #root .bg-orange-50 { background-color: #3b2d1a !important; }
+  #root .text-red-800, #root .text-red-700, #root .text-rose-800, #root .text-rose-700 { color: #ffb4bd !important; }
+  #root .bg-red-50, #root .bg-rose-50 { background-color: #3b2029 !important; }
+  #root .border-red-200, #root .border-rose-200 { border-color: #75404a !important; }
+  #root .bg-teal-100 { background-color: #164b4a !important; }
+  #root .text-teal-800 { color: #7be7dc !important; }
+  #root .bg-emerald-950 { color: #b8f4d7 !important; }
+  #root a[href^="tel:"] { text-decoration: none; }
+  #root a[href^="tel:"]:hover { filter: brightness(1.12); }
 }
 
 @media print {
