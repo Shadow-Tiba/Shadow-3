@@ -227,7 +227,7 @@ export const LiveOperationsBoard: React.FC = () => {
         {successMessage && <div className="rounded-2xl border border-emerald-400/30 bg-[#e9f8f0] p-4 text-sm text-emerald-100">{successMessage}</div>}
 
         {activeScreen === 'dashboard' && (data?.office_notifications ?? []).length > 0 && <section aria-label="تنبيهات المكتب" className="rounded-2xl border border-amber-500/30 bg-white p-4 shadow-sm sm:p-5">
-          <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-300" size={21}/><h2 className="font-black text-[#10243a]">تنبيهات التشغيل والوزن الفعلي</h2></div>
+          <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-700" size={21}/><h2 className="font-black text-[#10243a]">تنبيهات التشغيل والوزن الفعلي</h2></div>
           <div className="space-y-2">{(data?.office_notifications ?? []).slice(0, 10).map((notice: Record<string, any>) => <article key={notice.id} className="rounded-xl border border-amber-500/20 bg-[#fff4df] p-3">
             <div className="font-bold">{notice.title}</div>
             <p className="mt-1 text-sm leading-6 text-slate-700">{notice.body}</p>
@@ -239,8 +239,8 @@ export const LiveOperationsBoard: React.FC = () => {
           <aside className="w-full shrink-0 rounded-[26px] border border-[#dce6ef] bg-white p-3 shadow-[0_14px_38px_rgba(0,0,0,0.25)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
             <div className="mb-3 rounded-2xl border border-[#dce6ef] bg-gradient-to-l from-[#eaf5fc] via-white to-[#f3f7fb] px-4 py-4">
               <div className="text-[10px] font-black tracking-[0.14em] text-teal-700">TIBA SUPPLIES</div>
-              <h2 className="mt-1 text-lg font-black text-slate-100">إدارة المكتب</h2>
-              <p className="mt-1 text-xs leading-5 text-slate-400">كل شاشات التشغيل في مكان واحد</p>
+              <h2 className="mt-1 text-lg font-black text-[#10243a]">إدارة المكتب</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">كل شاشات التشغيل في مكان واحد</p>
             </div>
             <nav className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:grid xl:grid-cols-1 xl:overflow-visible" aria-label="التنقل بين شاشات المكتب">
               {([
@@ -260,7 +260,7 @@ export const LiveOperationsBoard: React.FC = () => {
                 ['assistant', 'مساعد النظام AI', Bot],
               ] as const).map(([key, label, Icon]) => {
                 const selected = activeScreen === key;
-                return <button key={key} type="button" onClick={() => setActiveScreen(key as typeof activeScreen)} className={selected ? `flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-right text-xs font-black text-[#10243a] shadow-md transition xl:w-full xl:text-sm ${screenPalette[key].selected}` : 'flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-[#294158] bg-white px-3 py-2 text-right text-xs font-semibold text-slate-300 transition hover:border-[#80cfc5] hover:bg-[#edf3f8] hover:text-[#10243a] xl:w-full xl:text-sm'}>
+                return <button key={key} type="button" onClick={() => setActiveScreen(key as typeof activeScreen)} className={selected ? `flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-right text-xs font-black text-[#10243a] shadow-md transition xl:w-full xl:text-sm ${screenPalette[key].selected}` : 'flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-[#dce6ef] bg-white px-3 py-2 text-right text-xs font-semibold text-slate-300 transition hover:border-[#80cfc5] hover:bg-[#edf3f8] hover:text-[#10243a] xl:w-full xl:text-sm'}>
                   <span className={selected ? "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/15" : `grid h-8 w-8 shrink-0 place-items-center rounded-lg ${screenPalette[key].iconBg} ${screenPalette[key].icon}`}><Icon className="h-4 w-4 shrink-0" /></span>
                   <span className="min-w-0 flex-1 leading-5">{label}</span>
                   {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -270,8 +270,8 @@ export const LiveOperationsBoard: React.FC = () => {
           </aside>
           <section className={`min-w-0 flex-1 space-y-4 rounded-[1.75rem] border border-[#dce6ef] bg-white p-2 shadow-[0_14px_38px_rgba(0,0,0,0.18)] transition-colors sm:space-y-5 sm:p-4 ${screenPalette[activeScreen].wash}`}>
         {activeScreen === 'analytics' ? <section className="space-y-5">
-          <div className="rounded-3xl border border-indigo-100 bg-gradient-to-l from-indigo-950 via-blue-950 to-slate-900 p-5 text-white shadow-lg sm:p-6">
-            <p className="text-xs font-black tracking-widest text-cyan-300">PERFORMANCE ANALYTICS</p>
+          <div className="rounded-3xl border border-indigo-100 bg-gradient-to-l from-indigo-50 via-white to-sky-50 p-5 text-[#10243a] shadow-lg sm:p-6">
+            <p className="text-xs font-black tracking-widest text-teal-700">PERFORMANCE ANALYTICS</p>
             <h2 className="mt-2 text-2xl font-black sm:text-3xl">تحليل أداء التشغيل</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">ملخص مؤشرات الأداء من السجلات الحقيقية المتاحة: الطلبات، التخصيصات، التحميل الفعلي، والسائقون. كشوف الحسابات موجودة في أقسام منفصلة.</p>
           </div>
@@ -302,13 +302,13 @@ export const LiveOperationsBoard: React.FC = () => {
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-800"><span className="h-2 w-2 rounded-full bg-emerald-400" /> بيانات التشغيل الحقيقية</div>
               <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">لوحة تشغيل <span className="text-teal-700">Tiba-Supplies</span></h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-slate-600">متابعة أوامر التحميل والسائقين والمصانع والمحاجر من مكان واحد، مع الانتقال إلى شاشة مستقلة لكل قسم.</p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-700"><span className="rounded-lg bg-white px-3 py-2">مكتب التشغيل: {operationalOffice?.name ?? 'طيبة للتوريدات'}</span><span className="rounded-lg bg-white/10 px-3 py-2">مكتب الوصول: {checkInOffice?.name ?? 'رأس سدر'}</span></div>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-700"><span className="rounded-lg bg-white px-3 py-2">مكتب التشغيل: {operationalOffice?.name ?? 'طيبة للتوريدات'}</span><span className="rounded-lg bg-white px-3 py-2">مكتب الوصول: {checkInOffice?.name ?? 'رأس سدر'}</span></div>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:min-w-64">
-              <div className="rounded-2xl border border-white/10 bg-white p-4 shadow-sm"><ClipboardList className="h-5 w-5 text-cyan-300"/><div className="mt-2 text-2xl font-black">{counts.orders}</div><div className="text-xs text-slate-300">أوامر التحميل</div></div>
-              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Truck className="h-5 w-5 text-emerald-300"/><div className="mt-2 text-2xl font-black">{counts.activeBookings}</div><div className="text-xs text-slate-300">تخصيصات نشطة</div></div>
-              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Factory className="h-5 w-5 text-sky-300"/><div className="mt-2 text-2xl font-black">{data?.factories.length ?? 0}</div><div className="text-xs text-slate-300">المصانع والعملاء</div></div>
-              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Mountain className="h-5 w-5 text-amber-300"/><div className="mt-2 text-2xl font-black">{data?.quarries.length ?? 0}</div><div className="text-xs text-slate-300">المحاجر والموردون</div></div>
+              <div className="rounded-2xl border border-white/10 bg-white p-4 shadow-sm"><ClipboardList className="h-5 w-5 text-teal-700"/><div className="mt-2 text-2xl font-black">{counts.orders}</div><div className="text-xs text-slate-600">أوامر التحميل</div></div>
+              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Truck className="h-5 w-5 text-emerald-700"/><div className="mt-2 text-2xl font-black">{counts.activeBookings}</div><div className="text-xs text-slate-600">تخصيصات نشطة</div></div>
+              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Factory className="h-5 w-5 text-sky-700"/><div className="mt-2 text-2xl font-black">{data?.factories.length ?? 0}</div><div className="text-xs text-slate-600">المصانع والعملاء</div></div>
+              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Mountain className="h-5 w-5 text-amber-300"/><div className="mt-2 text-2xl font-black">{data?.quarries.length ?? 0}</div><div className="text-xs text-slate-600">المحاجر والموردون</div></div>
             </div>
           </div>
         </section>
