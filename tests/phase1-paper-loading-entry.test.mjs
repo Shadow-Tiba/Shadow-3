@@ -20,11 +20,11 @@ test("paper loading entry is Main Office-authorized and writes a paper provenanc
   assert.match(migration, /grant execute on function public\.main_office_record_paper_actual_load.*to authenticated/i);
 });
 
-test("manual paper-load entry and CSV import are both available", () => {
+test("main office actual-loading workflow does not expose a paper-load entry screen", () => {
   assert.match(screen, /main_office_record_paper_actual_load/);
   assert.match(screen, /تسجيل التحميل الورقي/);
-  assert.match(board, /PaperLoadingEntryScreen/);
-  assert.match(board, /activeScreen === 'actual'/);
+  assert.doesNotMatch(board, /PaperLoadingEntryScreen/);
+  assert.match(board, /activeScreen === 'actual' \? <OfficeDirectoryScreen initialSection="actual" showSectionTabs=\{false\} \/>/);
   assert.match(screen, /main_office_import_paper_loads/);
   assert.match(screen, /تسجيل تحميل ورقي يدوي/);
   assert.match(screen, /duplicateSourceIds/);
