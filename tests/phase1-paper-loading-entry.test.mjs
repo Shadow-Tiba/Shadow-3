@@ -20,13 +20,13 @@ test("paper loading entry is Main Office-authorized and writes a paper provenanc
   assert.match(migration, /grant execute on function public\.main_office_record_paper_actual_load.*to authenticated/i);
 });
 
-test("paper loading form validates weight and uses the scoped server RPC", () => {
-  assert.match(screen, /main_office_record_paper_actual_load/);
-  assert.match(screen, /weight <= 0 \|\| weight > 1000/);
-  assert.match(screen, /p_source_file_name: null/);
-  assert.match(screen, /p_source_row_number: null/);
+test("manual paper-load entry is removed while CSV import remains available", () => {
+  assert.doesNotMatch(screen, /main_office_record_paper_actual_load/);
+  assert.doesNotMatch(screen, /تسجيل التحميل الورقي/);
   assert.match(board, /PaperLoadingEntryScreen/);
   assert.match(board, /activeScreen === 'actual'/);
+  assert.match(screen, /main_office_import_paper_loads/);
+  assert.match(screen, /duplicateSourceIds/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
