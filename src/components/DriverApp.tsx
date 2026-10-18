@@ -698,7 +698,7 @@ export const DriverApp: React.FC = () => {
           <label className="mt-5 block text-sm font-bold text-slate-700">اسم المستخدم (رقم الموبايل بالأرقام فقط)</label>
           <input value={phone} onChange={e => setPhone(e.target.value)} type="tel" inputMode="tel" autoComplete="tel" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" />
           <label className="mt-4 block text-sm font-bold text-slate-700">كلمة المرور</label>
-          <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-red-500" />
+          <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" />
           <button disabled={authBusy} className="mt-5 w-full rounded-xl bg-gradient-to-l from-teal-700 to-cyan-600 p-3 font-black text-white shadow-sm transition hover:from-sky-800 hover:to-teal-700 disabled:opacity-60">{authBusy ? 'جارٍ الدخول...' : 'دخول'}</button>
         </form>
       </main>
@@ -739,7 +739,7 @@ export const DriverApp: React.FC = () => {
           <button onClick={captureLocation} disabled={locating} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-teal-700 to-cyan-600 p-4 font-black text-white shadow-md shadow-sky-900/15 transition hover:from-sky-800 hover:to-teal-700 disabled:opacity-60">
             <MapPin size={20}/>{locating ? 'جاري فحص الموقع...' : 'أنا وصلت — فحص الموقع'}
           </button>
-          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-slate-100 p-3 text-sm text-teal-700"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
+          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
           {position && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
             <p className="font-black">تم تحديد الموقع على الجهاز</p>
             <p className="mt-2">دقة GPS: {Math.round(position.accuracy)} متر</p>
@@ -747,10 +747,10 @@ export const DriverApp: React.FC = () => {
             <p className="mt-2 break-all font-mono text-xs">{position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}</p>
             <p className="mt-3 text-xs leading-5">قراءة الموقع وحدها لا تكفي؛ زر «أنا وصلت» يتحقق من النطاق والدقة وحداثة القراءة ويسجّل دخولك لقائمة الانتظار على السيرفر.</p>
           </div>}
-          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-slate-100 p-3 text-sm text-teal-700"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
+          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
         </section>
         <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
-          <div className="flex items-center gap-2"><FileText className="text-amber-300" size={22}/><h2 className="font-black">إسناد مباشر — في انتظار قبولك</h2></div>
+          <div className="flex items-center gap-2"><FileText className="text-amber-800" size={22}/><h2 className="font-black">إسناد مباشر — في انتظار قبولك</h2></div>
           <p className="mt-2 text-sm leading-6 text-amber-800">الأوامر دي اتخصصت لك مباشرة من المكتب. راجع المصنع والمحجر وكود النقلة والعربية، واضغط «تأكيد القبول». وصول الإشعار وحده مش معناه إنك قبلت التخصيص، والنقلة لن تبدأ قبل تسجيل قبولك.</p>
           {acceptanceMessage && <div role="status" className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold leading-6 text-emerald-800">{acceptanceMessage}</div>}
           {pendingDirectAssignments.length ? <div className="mt-4 space-y-3">{pendingDirectAssignments.map((assignment: any) => <article key={assignment.booking_id} className="rounded-2xl border border-amber-200 bg-white p-4">
