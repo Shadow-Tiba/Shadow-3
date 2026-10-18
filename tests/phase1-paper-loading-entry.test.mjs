@@ -27,9 +27,9 @@ test("manual paper-load entry is removed while CSV import remains available", ()
   assert.match(board, /activeScreen === 'actual'/);
   assert.match(screen, /main_office_import_paper_loads/);
   assert.match(screen, /duplicateSourceIds/);
-  assert.ok(screen.includes("text.replace(/^\\\\uFEFF/, '')"), "CSV parser must strip a UTF-8 BOM");
-  assert.ok(screen.includes("ch === '\\\\n'") && screen.includes("ch === '\\\\r'"), "CSV parser must recognize LF and CR row endings");
-  assert.ok(screen.includes("input[i + 1] === '\\\\n'"), "CSV parser must consume the LF in CRLF row endings");
+  assert.ok(screen.includes("text.replace(/^\\uFEFF/, '')"), "CSV parser must strip a UTF-8 BOM");
+  assert.ok(screen.includes("ch === '\\n'") && screen.includes("ch === '\\r'"), "CSV parser must recognize LF and CR row endings");
+  assert.ok(screen.includes("input[i + 1] === '\\n'"), "CSV parser must consume the LF in CRLF row endings");
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
