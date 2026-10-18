@@ -46,6 +46,10 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       const parsed = parseCsv(await file.text());
       if (parsed.length < 2) throw new Error('ملف CSV لازم يحتوي على صف عناوين وصف بيانات واحد على الأقل.');
       const headers = parsed[0].map(value => value.trim().toLowerCase());
+      const duplicateHeaders = headers.filter((header, index) => header && headers.indexOf(header) !== index);
+      if (duplicateHeaders.length) throw new Error(`عناوين أعمدة مكررة في الملف: ${Array.from(new Set(duplicateHeaders)).join(', ')}. صحّح العناوين قبل الاستيراد.`);
+      const malformedRow = parsed.slice(1).findIndex(values => values.length !== headers.length);
+      if (malformedRow >= 0) throw new Error(`عدد الخلايا غير مطابق لعدد الأعمدة في الصف ${malformedRow + 2}. راجع الفواصل وعلامات الاقتباس في الملف.`);
       const required = ['load_date', 'vehicle_code', 'driver_code', 'factory_code', 'quarry_code', 'actual_weight'];
       const missing = required.filter(header => !headers.includes(header));
       if (missing.length) throw new Error(`أعمدة مطلوبة ناقصة: ${missing.join(', ')}`);
