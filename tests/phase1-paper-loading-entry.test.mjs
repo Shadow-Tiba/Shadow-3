@@ -33,6 +33,9 @@ test("manual paper-load entry is removed while CSV import remains available", ()
   assert.match(screen, /معاينة بيانات التحميل الفعلي قبل الإرسال/);
   assert.match(screen, /importRows\.slice\(0, 5\)/);
   assert.match(screen, /scope="col"/);
+  assert.match(screen, /duplicateHeaders/);
+  assert.match(screen, /malformedRow/);
+  assert.match(screen, /عدد الخلايا غير مطابق لعدد الأعمدة/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
