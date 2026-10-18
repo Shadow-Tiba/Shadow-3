@@ -9,15 +9,15 @@ const parseCsv = (text: string): string[][] => {
   let row: string[] = [];
   let cell = '';
   let quoted = false;
-  const input = text.replace(/^\\uFEFF/, '');
+  const input = text.replace(/^\uFEFF/, '');
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
     if (ch === '"') {
       if (quoted && input[i + 1] === '"') { cell += '"'; i++; }
       else quoted = !quoted;
     } else if (ch === ',' && !quoted) { row.push(cell); cell = ''; }
-    else if ((ch === '\\n' || ch === '\\r') && !quoted) {
-      if (ch === '\\r' && input[i + 1] === '\\n') i++;
+    else if ((ch === '\n' || ch === '\r') && !quoted) {
+      if (ch === '\r' && input[i + 1] === '\\n') i++;
       row.push(cell); cell = '';
       if (row.some(value => value.trim() !== '')) rows.push(row);
       row = [];
