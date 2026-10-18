@@ -108,7 +108,16 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       <input type="file" accept=".csv,text/csv" disabled={importing} onChange={event => void prepareCsv(event.target.files?.[0] ?? null)} className="mt-3 block w-full rounded-xl border border-slate-300 bg-white p-2 text-sm"/>
       {importError && <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{importError}</div>}
       {importMessage && <div role="status" className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{importMessage}</div>}
-      {importRows.length > 0 && <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3"><span className="text-sm font-bold text-slate-700">معاينة: {importRows.length} صف · أول صف: {importRows[0].load_date} · {importRows[0].vehicle_code} · {importRows[0].actual_weight} طن</span><button type="button" onClick={() => void importCsv()} disabled={importing} className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60">{importing ? <LoaderCircle size={16} className="animate-spin"/> : <FilePlus2 size={16}/>} بدء الاستيراد</button></div>}
+      {importRows.length > 0 && <>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3"><span className="text-sm font-bold text-slate-700">معاينة: {importRows.length} صف · عرض أول {Math.min(importRows.length, 5)} صفوف</span><button type="button" onClick={() => void importCsv()} disabled={importing} className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60">{importing ? <LoaderCircle size={16} className="animate-spin"/> : <FilePlus2 size={16}/>} بدء الاستيراد</button></div>
+        <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="min-w-full text-right text-xs">
+            <caption className="px-3 py-2 text-right font-bold text-slate-600">معاينة بيانات التحميل الفعلي قبل الإرسال</caption>
+            <thead className="bg-slate-100 text-slate-700"><tr>{['التاريخ', 'كود العربية', 'كود السائق', 'كود المصنع', 'كود المحجر', 'الوزن (طن)'].map(label => <th key={label} scope="col" className="whitespace-nowrap px-3 py-2 font-black">{label}</th>)}</tr></thead>
+            <tbody className="divide-y divide-slate-100">{importRows.slice(0, 5).map(row => <tr key={row.source_row_number} className="text-slate-800"><td className="whitespace-nowrap px-3 py-2">{row.load_date || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.vehicle_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.driver_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.factory_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.quarry_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.actual_weight || '—'}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </>}
     </div>
   </section>;
 };
