@@ -10,7 +10,7 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test:phase1:authorization": "node --test tests/phase1-edge-function-authorization.test.mjs",
-    "test:phase1": "node --test tests/phase1-edge-function-authorization.test.mjs tests/phase1-contract.test.mjs tests/phase1-reporting.test.mjs tests/phase1-multi-driver.test.mjs tests/phase1-current-lifecycle.test.mjs tests/phase1-branch-privacy-weight-notifications.test.mjs tests/phase1-dispatch-outcome-notifications.test.mjs tests/phase1-v191-client-rpc-contract.test.mjs tests/phase1-v191-migration-rpc-source.test.mjs tests/phase1-paper-loading-entry.test.mjs",
+    "test:phase1": "node --test tests/phase1-edge-function-authorization.test.mjs tests/phase1-contract.test.mjs tests/phase1-reporting.test.mjs tests/phase1-multi-driver.test.mjs tests/phase1-current-lifecycle.test.mjs tests/phase1-driver-acceptance-audit.test.mjs tests/phase1-main-office-snapshot-scope.test.mjs tests/phase1-branch-privacy-weight-notifications.test.mjs tests/phase1-dispatch-outcome-notifications.test.mjs tests/phase1-v191-client-rpc-contract.test.mjs tests/phase1-v191-migration-rpc-source.test.mjs tests/phase1-paper-loading-entry.test.mjs",
     "desktop:win": "npm run build && electron-builder --config electron-builder.yml --win portable --x64"
   },
   "dependencies": {
