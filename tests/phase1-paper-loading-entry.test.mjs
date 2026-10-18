@@ -20,12 +20,13 @@ test("paper loading entry is Main Office-authorized and writes a paper provenanc
   assert.match(migration, /grant execute on function public\.main_office_record_paper_actual_load.*to authenticated/i);
 });
 
-test("manual paper-load entry is removed while CSV import remains available", () => {
-  assert.doesNotMatch(screen, /main_office_record_paper_actual_load/);
-  assert.doesNotMatch(screen, /تسجيل التحميل الورقي/);
+test("manual paper-load entry and CSV import are both available", () => {
+  assert.match(screen, /main_office_record_paper_actual_load/);
+  assert.match(screen, /تسجيل التحميل الورقي/);
   assert.match(board, /PaperLoadingEntryScreen/);
   assert.match(board, /activeScreen === 'actual'/);
   assert.match(screen, /main_office_import_paper_loads/);
+  assert.match(screen, /تسجيل تحميل ورقي يدوي/);
   assert.match(screen, /duplicateSourceIds/);
   assert.ok(screen.includes("text.replace(/^\\uFEFF/, '')"), "CSV parser must strip a UTF-8 BOM");
   assert.ok(screen.includes("ch === '\\n'") && screen.includes("ch === '\\r'"), "CSV parser must recognize LF and CR row endings");
