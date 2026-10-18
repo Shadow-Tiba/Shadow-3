@@ -683,22 +683,22 @@ export const DriverApp: React.FC = () => {
   }
 
   if (loading) {
-    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-6 text-slate-100"><div className="rounded-3xl border border-red-100 bg-slate-900/90 px-8 py-9 text-center shadow-lg shadow-red-900/5"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-red-100 text-sky-700"><Truck size={30}/></div><p className="text-xs font-black tracking-widest text-teal-300">TIBA SUPPLIES · DRIVER</p><p className="mt-2 text-lg font-black">جاري تجهيز تطبيق السائق</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-red-100"><div className="h-full w-1/2 animate-pulse rounded-full bg-red-600"/></div></div></div>;
+    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-6 text-slate-900"><div className="rounded-3xl border border-red-100 bg-white/90 px-8 py-9 text-center shadow-lg shadow-red-900/5"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-red-100 text-sky-700"><Truck size={30}/></div><p className="text-xs font-black tracking-widest text-teal-700">TIBA SUPPLIES · DRIVER</p><p className="mt-2 text-lg font-black">جاري تجهيز تطبيق السائق</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-red-100"><div className="h-full w-1/2 animate-pulse rounded-full bg-red-600"/></div></div></div>;
   }
 
   if (!session) {
     return (
-      <main dir="rtl" className="min-h-screen bg-slate-800 p-5 flex items-center justify-center">
-        <form onSubmit={signIn} className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-7 shadow-sm">
+      <main dir="rtl" className="min-h-screen bg-slate-100 p-5 flex items-center justify-center">
+        <form onSubmit={signIn} className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
           <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-100 text-sky-800"><Truck size={28} /></div>
-          <p className="text-xs font-black tracking-widest text-teal-300">TIBA SUPPLIES · DRIVER</p>
-          <h1 className="mt-2 text-2xl font-black text-slate-100">دخول السائق</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-400">استخدم رقم الموبايل بالأرقام فقط كاسم مستخدم، مع كلمة المرور التي استلمتها من المكتب.</p>
-          {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-slate-800 p-3 text-sm text-teal-300">{error}</div>}
+          <p className="text-xs font-black tracking-widest text-teal-700">TIBA SUPPLIES · DRIVER</p>
+          <h1 className="mt-2 text-2xl font-black text-slate-900">دخول السائق</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">استخدم رقم الموبايل بالأرقام فقط كاسم مستخدم، مع كلمة المرور التي استلمتها من المكتب.</p>
+          {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
           <label className="mt-5 block text-sm font-bold text-slate-700">اسم المستخدم (رقم الموبايل بالأرقام فقط)</label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} type="tel" inputMode="tel" autoComplete="tel" required className="mt-2 w-full rounded-xl border border-slate-300 bg-slate-900 p-3 text-slate-100 outline-none focus:border-red-500" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} type="tel" inputMode="tel" autoComplete="tel" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" />
           <label className="mt-4 block text-sm font-bold text-slate-700">كلمة المرور</label>
-          <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="mt-2 w-full rounded-xl border border-slate-300 bg-slate-900 p-3 text-slate-100 outline-none focus:border-red-500" />
+          <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-red-500" />
           <button disabled={authBusy} className="mt-5 w-full rounded-xl bg-gradient-to-l from-teal-700 to-cyan-600 p-3 font-black text-white shadow-sm transition hover:from-sky-800 hover:to-teal-700 disabled:opacity-60">{authBusy ? 'جارٍ الدخول...' : 'دخول'}</button>
         </form>
       </main>
@@ -712,105 +712,105 @@ export const DriverApp: React.FC = () => {
 
 
   return (
-    <main dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950/95 shadow-sm backdrop-blur">
+    <main dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
         <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-800 text-teal-300"><Truck size={23} /></div>
-            <div><p className="text-xs font-black text-teal-300">TIBA SUPPLIES</p><h1 className="font-black">تطبيق السائق</h1></div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-teal-700"><Truck size={23} /></div>
+            <div><p className="text-xs font-black text-teal-700">TIBA SUPPLIES</p><h1 className="font-black">تطبيق السائق</h1></div>
           </div>
-          <button aria-label="تسجيل الخروج" onClick={() => void supabase.auth.signOut()} className="rounded-xl border border-slate-700 bg-slate-900 p-2 text-slate-300"><LogOut size={18} /></button>
+          <button aria-label="تسجيل الخروج" onClick={() => void supabase.auth.signOut()} className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600"><LogOut size={18} /></button>
         </div>
       </header>
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-10">
-        <section className="rounded-3xl border border-slate-700/80 bg-slate-900 p-5 shadow-sm shadow-slate-900/[0.04]">
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/[0.04]">
           <div className="flex items-start justify-between gap-3">
-            <div><p className="text-sm text-slate-400">أهلًا بك</p><h2 className="mt-1 break-all text-lg font-black">{session.user?.phone}</h2></div>
-            <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-bold text-slate-300">متصل</span>
+            <div><p className="text-sm text-slate-500">أهلًا بك</p><h2 className="mt-1 break-all text-lg font-black">{session.user?.phone}</h2></div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">متصل</span>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-white p-4 ring-1 ring-sky-100"><MapPin className="mb-2 text-teal-300" size={21}/><p className="text-xs text-slate-400">مكتب تسجيل الوصول</p><p className="mt-1 font-black">رأس سدر</p></div>
-            <div className="rounded-2xl bg-slate-800 p-4"><Navigation className="mb-2 text-teal-300" size={21}/><p className="text-xs text-slate-400">نطاق الوصول</p><p className="mt-1 font-black">10 كم</p></div>
+            <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-white p-4 ring-1 ring-sky-100"><MapPin className="mb-2 text-teal-700" size={21}/><p className="text-xs text-slate-500">مكتب تسجيل الوصول</p><p className="mt-1 font-black">رأس سدر</p></div>
+            <div className="rounded-2xl bg-slate-100 p-4"><Navigation className="mb-2 text-teal-700" size={21}/><p className="text-xs text-slate-500">نطاق الوصول</p><p className="mt-1 font-black">10 كم</p></div>
           </div>
         </section>
-        <section className="rounded-3xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-          <div className="flex items-center gap-2"><ShieldCheck className="text-teal-300" size={22}/><h2 className="font-black">تسجيل الوصول</h2></div>
-          <p className="mt-2 text-sm leading-6 text-slate-300">مشاركة الموقع تعمل تلقائيًا بعد تسجيل الدخول. اضغط الزر لفحص موقعك ومعرفة هل أنت داخل نطاق 10 كم من مكتب رأس سدر.</p>
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2"><ShieldCheck className="text-teal-700" size={22}/><h2 className="font-black">تسجيل الوصول</h2></div>
+          <p className="mt-2 text-sm leading-6 text-slate-600">مشاركة الموقع تعمل تلقائيًا بعد تسجيل الدخول. اضغط الزر لفحص موقعك ومعرفة هل أنت داخل نطاق 10 كم من مكتب رأس سدر.</p>
           <button onClick={captureLocation} disabled={locating} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-teal-700 to-cyan-600 p-4 font-black text-white shadow-md shadow-sky-900/15 transition hover:from-sky-800 hover:to-teal-700 disabled:opacity-60">
             <MapPin size={20}/>{locating ? 'جاري فحص الموقع...' : 'أنا وصلت — فحص الموقع'}
           </button>
-          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-slate-800 p-3 text-sm text-teal-300"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
-          {position && <div className="mt-4 rounded-2xl border border-emerald-800 bg-emerald-950 p-4 text-sm text-emerald-200">
+          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-slate-100 p-3 text-sm text-teal-700"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
+          {position && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
             <p className="font-black">تم تحديد الموقع على الجهاز</p>
             <p className="mt-2">دقة GPS: {Math.round(position.accuracy)} متر</p>
             <p>وقت القراءة: {position.capturedAt}</p>
             <p className="mt-2 break-all font-mono text-xs">{position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}</p>
             <p className="mt-3 text-xs leading-5">قراءة الموقع وحدها لا تكفي؛ زر «أنا وصلت» يتحقق من النطاق والدقة وحداثة القراءة ويسجّل دخولك لقائمة الانتظار على السيرفر.</p>
           </div>}
-          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-slate-800 p-3 text-sm text-teal-300"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
+          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-slate-100 p-3 text-sm text-teal-700"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
         </section>
-        <section className="rounded-3xl border border-amber-800 bg-amber-950 p-5 shadow-sm">
+        <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <div className="flex items-center gap-2"><FileText className="text-amber-300" size={22}/><h2 className="font-black">إسناد مباشر — في انتظار قبولك</h2></div>
-          <p className="mt-2 text-sm leading-6 text-amber-200">الأوامر دي اتخصصت لك مباشرة من المكتب. راجع المصنع والمحجر وكود النقلة والعربية، واضغط «تأكيد القبول». وصول الإشعار وحده مش معناه إنك قبلت التخصيص، والنقلة لن تبدأ قبل تسجيل قبولك.</p>
-          {acceptanceMessage && <div role="status" className="mt-3 rounded-xl border border-emerald-800 bg-emerald-950 p-3 text-sm font-bold leading-6 text-emerald-200">{acceptanceMessage}</div>}
-          {pendingDirectAssignments.length ? <div className="mt-4 space-y-3">{pendingDirectAssignments.map((assignment: any) => <article key={assignment.booking_id} className="rounded-2xl border border-amber-800 bg-slate-900 p-4">
-            <div className="flex items-start gap-3"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-100 text-xl font-black text-amber-200">{factoryGlyph(String(assignment.factory_name || 'م'))}</div><div className="min-w-0 flex-1"><h3 className="font-black">{assignment.factory_name || 'مصنع غير محدد'}</h3><p className="mt-1 text-sm text-slate-300">المحجر: {assignment.quarry_name || 'غير محدد'}</p><p className="mt-1 text-sm font-black text-cyan-300">كود النقلة: <span dir="ltr" className="font-mono">{assignment.trip_code || 'جارٍ تجهيز الكود'}</span></p><p className="mt-1 text-xs text-slate-400">رقم الإسناد اليومي: {assignment.assignment_daily_number ?? '—'} · {assignment.assigned_at ? new Date(assignment.assigned_at).toLocaleString('ar-EG') : ''}</p></div></div>
+          <p className="mt-2 text-sm leading-6 text-amber-800">الأوامر دي اتخصصت لك مباشرة من المكتب. راجع المصنع والمحجر وكود النقلة والعربية، واضغط «تأكيد القبول». وصول الإشعار وحده مش معناه إنك قبلت التخصيص، والنقلة لن تبدأ قبل تسجيل قبولك.</p>
+          {acceptanceMessage && <div role="status" className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold leading-6 text-emerald-800">{acceptanceMessage}</div>}
+          {pendingDirectAssignments.length ? <div className="mt-4 space-y-3">{pendingDirectAssignments.map((assignment: any) => <article key={assignment.booking_id} className="rounded-2xl border border-amber-200 bg-white p-4">
+            <div className="flex items-start gap-3"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-100 text-xl font-black text-amber-800">{factoryGlyph(String(assignment.factory_name || 'م'))}</div><div className="min-w-0 flex-1"><h3 className="font-black">{assignment.factory_name || 'مصنع غير محدد'}</h3><p className="mt-1 text-sm text-slate-600">المحجر: {assignment.quarry_name || 'غير محدد'}</p><p className="mt-1 text-sm font-black text-cyan-700">كود النقلة: <span dir="ltr" className="font-mono">{assignment.trip_code || 'جارٍ تجهيز الكود'}</span></p><p className="mt-1 text-xs text-slate-500">رقم الإسناد اليومي: {assignment.assignment_daily_number ?? '—'} · {assignment.assigned_at ? new Date(assignment.assigned_at).toLocaleString('ar-EG') : ''}</p></div></div>
             <button type="button" onClick={() => void acceptDirectAssignment(assignment.booking_id)} disabled={acceptingBookingId !== null} className="mt-4 w-full rounded-xl bg-emerald-700 p-3 font-black text-white disabled:opacity-60">{acceptingBookingId === assignment.booking_id ? 'جارٍ تسجيل القبول...' : 'تأكيد القبول'}</button>
-          </article>)}</div> : <p className="mt-3 rounded-xl bg-slate-900/80 p-3 text-sm text-slate-300">مفيش أوامر مباشرة معلّقة حاليًا.</p>}
+          </article>)}</div> : <p className="mt-3 rounded-xl bg-slate-50/80 p-3 text-sm text-slate-600">مفيش أوامر مباشرة معلّقة حاليًا.</p>}
         </section>
-        {(portal?.my_bookings || []).filter((booking: any) => booking.is_direct_assignment && ['LOADING', 'LOADED', 'IN_TRANSIT'].includes(booking.raw_status)).length > 0 && <section className="rounded-3xl border border-emerald-300 bg-emerald-950 p-5 shadow-sm">
+        {(portal?.my_bookings || []).filter((booking: any) => booking.is_direct_assignment && ['LOADING', 'LOADED', 'IN_TRANSIT'].includes(booking.raw_status)).length > 0 && <section className="rounded-3xl border border-emerald-300 bg-emerald-50 p-5 shadow-sm">
           <div className="flex items-center gap-2"><Truck className="text-emerald-800" size={22}/><h2 className="font-black">نقلات الإسناد المباشر النشطة</h2></div>
-          <p className="mt-2 text-sm leading-6 text-emerald-200">تم قبول الإسناد، والنقلة أصبحت ضمن التشغيل. ظهورها هنا لا يعتمد على بقاء موقعك داخل نطاق مكتب رأس سدر.</p>
-          <div className="mt-3 space-y-3">{portal.my_bookings.filter((booking: any) => booking.is_direct_assignment && ['LOADING', 'LOADED', 'IN_TRANSIT'].includes(booking.raw_status)).map((booking: any) => <article key={booking.booking_id} className="rounded-2xl border border-emerald-800 bg-slate-900 p-4">
+          <p className="mt-2 text-sm leading-6 text-emerald-800">تم قبول الإسناد، والنقلة أصبحت ضمن التشغيل. ظهورها هنا لا يعتمد على بقاء موقعك داخل نطاق مكتب رأس سدر.</p>
+          <div className="mt-3 space-y-3">{portal.my_bookings.filter((booking: any) => booking.is_direct_assignment && ['LOADING', 'LOADED', 'IN_TRANSIT'].includes(booking.raw_status)).map((booking: any) => <article key={booking.booking_id} className="rounded-2xl border border-emerald-200 bg-white p-4">
             <div className="font-black">{booking.factory_name} ← {booking.quarry_name}</div>
-            <p className="mt-2 text-sm text-slate-300">الحالة: {booking.raw_status === 'LOADING' ? 'جاري التحميل' : booking.raw_status === 'LOADED' ? 'تم التحميل' : 'في الطريق'}</p>
-            <p className="mt-1 text-sm font-black text-cyan-300">كود النقلة: <span dir="ltr" className="font-mono">{booking.trip_code || '—'}</span></p><p className="mt-1 text-xs text-slate-400">رقم التحميل اليومي: {booking.daily_load_number ?? '—'}</p>
+            <p className="mt-2 text-sm text-slate-600">الحالة: {booking.raw_status === 'LOADING' ? 'جاري التحميل' : booking.raw_status === 'LOADED' ? 'تم التحميل' : 'في الطريق'}</p>
+            <p className="mt-1 text-sm font-black text-cyan-700">كود النقلة: <span dir="ltr" className="font-mono">{booking.trip_code || '—'}</span></p><p className="mt-1 text-xs text-slate-500">رقم التحميل اليومي: {booking.daily_load_number ?? '—'}</p>
           </article>)}</div>
         </section>}
-        <section className="rounded-3xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-          <div className="flex items-center gap-2"><FileText className="text-teal-300" size={22}/><h2 className="font-black">سجل النقلات السابقة</h2></div>
-          <p className="mt-2 text-sm leading-6 text-slate-300">السجل ده متاح لك في أي مكان، ومش مرتبط بنطاق الـ 10 كم. النطاق خاص بالحمولات المتاحة وتسجيل الوصول وقائمة الانتظار فقط.</p>
-          {(portal?.my_bookings || []).length ? <div className="mt-4 space-y-3">{portal.my_bookings.map((booking: any) => <article key={booking.booking_id} className="rounded-2xl border border-slate-700 p-4"><div className="font-bold">{booking.factory_name || 'مصنع غير محدد'} ← {booking.quarry_name || 'محجر غير محدد'}</div><p className="mt-2 text-sm text-slate-300">الحالة: {({ASSIGNED:'تم الإسناد',ARRIVED:'وصل السائق',LOADING:'جاري التحميل',LOADED:'تم التحميل',IN_TRANSIT:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغاة'} as Record<string,string>)[booking.raw_status] || booking.status}</p><p className="mt-1 text-xs text-slate-400">{booking.booked_at ? new Date(booking.booked_at).toLocaleString('ar-EG') : ''}</p>{booking.raw_status === 'IN_TRANSIT' && <div className="mt-4 space-y-3 rounded-xl border border-emerald-800 bg-emerald-950/60 p-3">
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2"><FileText className="text-teal-700" size={22}/><h2 className="font-black">سجل النقلات السابقة</h2></div>
+          <p className="mt-2 text-sm leading-6 text-slate-600">السجل ده متاح لك في أي مكان، ومش مرتبط بنطاق الـ 10 كم. النطاق خاص بالحمولات المتاحة وتسجيل الوصول وقائمة الانتظار فقط.</p>
+          {(portal?.my_bookings || []).length ? <div className="mt-4 space-y-3">{portal.my_bookings.map((booking: any) => <article key={booking.booking_id} className="rounded-2xl border border-slate-200 p-4"><div className="font-bold">{booking.factory_name || 'مصنع غير محدد'} ← {booking.quarry_name || 'محجر غير محدد'}</div><p className="mt-2 text-sm text-slate-600">الحالة: {({ASSIGNED:'تم الإسناد',ARRIVED:'وصل السائق',LOADING:'جاري التحميل',LOADED:'تم التحميل',IN_TRANSIT:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغاة'} as Record<string,string>)[booking.raw_status] || booking.status}</p><p className="mt-1 text-xs text-slate-500">{booking.booked_at ? new Date(booking.booked_at).toLocaleString('ar-EG') : ''}</p>{booking.raw_status === 'IN_TRANSIT' && <div className="mt-4 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3">
             <div className="grid grid-cols-2 gap-3">
               <label className="block text-sm font-bold text-slate-700">الوزن بالطن *
-                <input type="text" inputMode="numeric" value={deliveryWeightTons[booking.booking_id] ?? ''} onChange={e => setDeliveryWeightTons(current => ({ ...current, [booking.booking_id]: e.target.value.replace(/\D/g, '') }))} placeholder="مثال: 80" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-900 p-3 text-base font-black" aria-label="الوزن بالطن" />
+                <input type="text" inputMode="numeric" value={deliveryWeightTons[booking.booking_id] ?? ''} onChange={e => setDeliveryWeightTons(current => ({ ...current, [booking.booking_id]: e.target.value.replace(/\D/g, '') }))} placeholder="مثال: 80" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 text-base font-black" aria-label="الوزن بالطن" />
               </label>
               <label className="block text-sm font-bold text-slate-700">الوزن بالكيلو
-                <input type="text" inputMode="numeric" value={deliveryWeightKilograms[booking.booking_id] ?? ''} onChange={e => setDeliveryWeightKilograms(current => ({ ...current, [booking.booking_id]: e.target.value.replace(/\D/g, '').slice(0, 3) }))} placeholder="مثال: 500" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-slate-900 p-3 text-base font-black" aria-label="الوزن بالكيلوجرام" />
+                <input type="text" inputMode="numeric" value={deliveryWeightKilograms[booking.booking_id] ?? ''} onChange={e => setDeliveryWeightKilograms(current => ({ ...current, [booking.booking_id]: e.target.value.replace(/\D/g, '').slice(0, 3) }))} placeholder="مثال: 500" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white p-3 text-base font-black" aria-label="الوزن بالكيلوجرام" />
               </label>
             </div>
-            <span className="-mt-2 block text-xs font-normal text-slate-400">مثال: 80 طن و500 كيلو. الخانتان تتحولان تلقائيًا لوزن واحد في التقارير.</span>
+            <span className="-mt-2 block text-xs font-normal text-slate-500">مثال: 80 طن و500 كيلو. الخانتان تتحولان تلقائيًا لوزن واحد في التقارير.</span>
             <label className="block text-sm font-bold text-slate-700">صورة الميزان (اختياري)
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setDeliveryScaleImages(current => ({ ...current, [booking.booking_id]: e.target.files?.[0] ?? null }))} className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-slate-900 p-2 text-sm font-normal" />
-              <span className="mt-1 block text-xs font-normal text-slate-400">JPG أو PNG أو WEBP، بحد أقصى 10 ميجابايت.</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setDeliveryScaleImages(current => ({ ...current, [booking.booking_id]: e.target.files?.[0] ?? null }))} className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white p-2 text-sm font-normal" />
+              <span className="mt-1 block text-xs font-normal text-slate-500">JPG أو PNG أو WEBP، بحد أقصى 10 ميجابايت.</span>
             </label>
             <button type="button" onClick={() => void confirmDelivery(booking.booking_id)} disabled={deliveryBusyBookingId !== null || !parseDeliveryWeight(deliveryWeightTons[booking.booking_id] ?? '', deliveryWeightKilograms[booking.booking_id] ?? '').valid} className="w-full rounded-xl bg-emerald-700 p-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">{deliveryBusyBookingId === booking.booking_id ? 'جارٍ تسجيل الوزن والتسليم...' : 'تأكيد التسليم والوزن'}</button>
-          </div>}</article>)}</div> : <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm leading-7 text-slate-400">مفيش نقلات سابقة مسجلة على حسابك حتى الآن.</p>}
+          </div>}</article>)}</div> : <p className="mt-2 rounded-xl bg-slate-50 p-3 text-sm leading-7 text-slate-500">مفيش نقلات سابقة مسجلة على حسابك حتى الآن.</p>}
         </section>
         {!portal?.inside_geofence ? (
-          <section className="rounded-3xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-            <div className="flex items-center gap-2"><ShieldCheck className="text-teal-300" size={22}/><h2 className="font-black">الخدمات داخل نطاق المكتب</h2></div>
-            <p className="mt-2 text-sm leading-7 text-slate-300">لن تظهر الحمولات المتاحة أو ترتيب الانتظار أو سجل أوامرك إلا بعد أن يؤكد النظام وجودك داخل نطاق 10 كم من مكتب رأس سدر، مع موقع GPS حديث.</p>
-            {portal && <p className="mt-3 rounded-xl bg-amber-950 p-3 text-sm text-amber-200">{portal.location_updated_at ? 'آخر موقع محفوظ قد يكون خارج النطاق أو أقدم من 10 دقائق.' : 'لم يصل موقع GPS حديث للنظام حتى الآن.'}</p>}
+          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2"><ShieldCheck className="text-teal-700" size={22}/><h2 className="font-black">الخدمات داخل نطاق المكتب</h2></div>
+            <p className="mt-2 text-sm leading-7 text-slate-600">لن تظهر الحمولات المتاحة أو ترتيب الانتظار أو سجل أوامرك إلا بعد أن يؤكد النظام وجودك داخل نطاق 10 كم من مكتب رأس سدر، مع موقع GPS حديث.</p>
+            {portal && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{portal.location_updated_at ? 'آخر موقع محفوظ قد يكون خارج النطاق أو أقدم من 10 دقائق.' : 'لم يصل موقع GPS حديث للنظام حتى الآن.'}</p>}
             <p className="mt-3 text-sm font-bold text-slate-700">استخدم زر «أنا وصلت — فحص الموقع» أعلاه لتحديث موقعك والتحقق من النطاق.</p>
           </section>
         ) : (
           <>
-            <section className="rounded-3xl border border-emerald-800 bg-slate-900 p-5 shadow-sm">
+            <section className="rounded-3xl border border-emerald-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2"><ShieldCheck className="text-emerald-700" size={22}/><h2 className="font-black">أنت داخل نطاق المكتب</h2></div>
-              <p className="mt-2 text-sm text-slate-300">المسافة التقريبية: {Math.round(Number(portal.distance_m || 0))} متر من مكتب {portal.office_name || 'رأس سدر'}.</p>
+              <p className="mt-2 text-sm text-slate-600">المسافة التقريبية: {Math.round(Number(portal.distance_m || 0))} متر من مكتب {portal.office_name || 'رأس سدر'}.</p>
             </section>
-            <section className="rounded-3xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-              <div className="flex items-center gap-2"><Clock3 className="text-teal-300" size={22}/><h2 className="font-black">رقمك في الانتظار</h2></div>
-              {dispatchState?.queue_status === 'WAITING' ? <><p className="mt-3 text-2xl font-black text-teal-300">الدور رقم {dispatchState.queue_position || '—'}</p><p className="mt-1 text-xs text-slate-400">وقت دخول القائمة: {dispatchState.queue_arrived_at ? new Date(dispatchState.queue_arrived_at).toLocaleString('ar-EG') : '—'}</p></> : dispatchState?.queue_status === 'ASSIGNED' ? <p className="mt-2 text-sm font-bold text-emerald-700">تم تخصيص نقلة لك. راجع سجل النقلات واتبع خطوات الوصول والتحميل.</p> : <p className="mt-2 text-sm leading-7 text-slate-300">أنت داخل النطاق لكنك غير مسجل حاليًا في قائمة الانتظار. اضغط «أنا وصلت» لتسجيل وقت دخولك على السيرفر.</p>}
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2"><Clock3 className="text-teal-700" size={22}/><h2 className="font-black">رقمك في الانتظار</h2></div>
+              {dispatchState?.queue_status === 'WAITING' ? <><p className="mt-3 text-2xl font-black text-teal-700">الدور رقم {dispatchState.queue_position || '—'}</p><p className="mt-1 text-xs text-slate-500">وقت دخول القائمة: {dispatchState.queue_arrived_at ? new Date(dispatchState.queue_arrived_at).toLocaleString('ar-EG') : '—'}</p></> : dispatchState?.queue_status === 'ASSIGNED' ? <p className="mt-2 text-sm font-bold text-emerald-700">تم تخصيص نقلة لك. راجع سجل النقلات واتبع خطوات الوصول والتحميل.</p> : <p className="mt-2 text-sm leading-7 text-slate-600">أنت داخل النطاق لكنك غير مسجل حاليًا في قائمة الانتظار. اضغط «أنا وصلت» لتسجيل وقت دخولك على السيرفر.</p>}
               {dispatchState?.selection_window?.is_open && <p className="mt-3 rounded-xl bg-violet-50 p-3 text-sm font-bold text-violet-900">نافذة اختيار النقلات مفتوحة حتى {new Date(dispatchState.selection_window.selection_ends_at).toLocaleTimeString('ar-EG')}.</p>}
-              {dispatchState?.choice_status === 'CHOSEN' && <p className="mt-3 rounded-xl bg-amber-950 p-3 text-sm font-bold text-amber-200">اختيارك مسجل، لكنه ليس تخصيصًا نهائيًا. التوزيع يتم بعد انتهاء الخمس دقائق حسب أقدم وقت دخول.</p>}
-              {dispatchState?.choice_status === 'ALLOCATED' && <p className="mt-3 rounded-xl bg-emerald-950 p-3 text-sm font-bold text-emerald-200">تم تخصيص النقلة المختارة لك.</p>}
+              {dispatchState?.choice_status === 'CHOSEN' && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-800">اختيارك مسجل، لكنه ليس تخصيصًا نهائيًا. التوزيع يتم بعد انتهاء الخمس دقائق حسب أقدم وقت دخول.</p>}
+              {dispatchState?.choice_status === 'ALLOCATED' && <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800">تم تخصيص النقلة المختارة لك.</p>}
               {dispatchMessage && <p role="status" className="mt-3 rounded-xl bg-sky-50 p-3 text-sm font-bold text-sky-900">{dispatchMessage}</p>}
             </section>
-            <section className="rounded-3xl border border-slate-700 bg-slate-900 p-5 shadow-sm">
-              <div className="flex items-center gap-2"><Truck className="text-teal-300" size={22}/><h2 className="font-black">الحمولات المتاحة</h2></div>
-              {(dispatchState?.available_loads || []).length ? <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{dispatchState.available_loads.map((load: any) => { const factoryName = String(load.factory_name || 'مصنع غير محدد'); const quarryName = String(load.quarry_name || 'محجر غير محدد'); const color = quarryColor(load.quarry_id, quarryName); return <article key={load.load_order_id} className="rounded-2xl border border-slate-700 bg-slate-900 p-3 text-center shadow-sm"><div aria-label={factoryName + ' — ' + quarryName} className="mx-auto grid h-16 w-16 place-items-center rounded-2xl border-2 text-2xl font-black shadow-sm" style={{ backgroundColor: color.background, color: color.foreground, borderColor: color.border }}>{factoryGlyph(factoryName)}</div><h3 className="mt-3 font-black leading-6">{factoryName}</h3><p className="mt-1 text-sm font-bold text-slate-300">{quarryName}</p><p className="mt-3 rounded-xl bg-slate-50 px-2 py-2 text-xs text-slate-300">المتبقي: <strong>{load.remaining_quantity}</strong> نقلة</p><p className="mt-2 text-[11px] text-slate-400">أمر: {String(load.load_order_id).slice(0, 8)}</p><button type="button" onClick={() => void selectLoad(load.load_order_id)} disabled={selectingLoadOrderId !== null || dispatchState?.queue_status !== 'WAITING' || (dispatchState?.choice_status && dispatchState.choice_status !== 'CHOSEN')} className={`mt-3 w-full rounded-xl p-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50 ${load.is_selected ? 'bg-emerald-700' : 'bg-violet-700 hover:bg-violet-800'}`}>{selectingLoadOrderId === load.load_order_id ? 'جارٍ تسجيل الاختيار...' : load.is_selected ? 'اختيارك الحالي' : 'اختيار النقلة'}</button></article>; })}</div> : <p className="mt-2 text-sm leading-7 text-slate-400">لا توجد حمولات مفتوحة للاختيار حاليًا. لازم تكون مسجلًا في قائمة الانتظار، ويكون طلب التحميل داخل نافذة الخمس دقائق.</p>}
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2"><Truck className="text-teal-700" size={22}/><h2 className="font-black">الحمولات المتاحة</h2></div>
+              {(dispatchState?.available_loads || []).length ? <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{dispatchState.available_loads.map((load: any) => { const factoryName = String(load.factory_name || 'مصنع غير محدد'); const quarryName = String(load.quarry_name || 'محجر غير محدد'); const color = quarryColor(load.quarry_id, quarryName); return <article key={load.load_order_id} className="rounded-2xl border border-slate-200 bg-white p-3 text-center shadow-sm"><div aria-label={factoryName + ' — ' + quarryName} className="mx-auto grid h-16 w-16 place-items-center rounded-2xl border-2 text-2xl font-black shadow-sm" style={{ backgroundColor: color.background, color: color.foreground, borderColor: color.border }}>{factoryGlyph(factoryName)}</div><h3 className="mt-3 font-black leading-6">{factoryName}</h3><p className="mt-1 text-sm font-bold text-slate-600">{quarryName}</p><p className="mt-3 rounded-xl bg-slate-50 px-2 py-2 text-xs text-slate-600">المتبقي: <strong>{load.remaining_quantity}</strong> نقلة</p><p className="mt-2 text-[11px] text-slate-500">أمر: {String(load.load_order_id).slice(0, 8)}</p><button type="button" onClick={() => void selectLoad(load.load_order_id)} disabled={selectingLoadOrderId !== null || dispatchState?.queue_status !== 'WAITING' || (dispatchState?.choice_status && dispatchState.choice_status !== 'CHOSEN')} className={`mt-3 w-full rounded-xl p-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50 ${load.is_selected ? 'bg-emerald-700' : 'bg-violet-700 hover:bg-violet-800'}`}>{selectingLoadOrderId === load.load_order_id ? 'جارٍ تسجيل الاختيار...' : load.is_selected ? 'اختيارك الحالي' : 'اختيار النقلة'}</button></article>; })}</div> : <p className="mt-2 text-sm leading-7 text-slate-500">لا توجد حمولات مفتوحة للاختيار حاليًا. لازم تكون مسجلًا في قائمة الانتظار، ويكون طلب التحميل داخل نافذة الخمس دقائق.</p>}
             </section>
           </>
         )}
@@ -818,7 +818,7 @@ export const DriverApp: React.FC = () => {
         {(dispatchState?.notifications || []).length > 0 && <section className="rounded-3xl border border-sky-200 bg-sky-50 p-5 shadow-sm">
           <div className="flex items-center gap-2"><FileText className="text-sky-800" size={22}/><h2 className="font-black text-sky-950">إشعارات التوزيع</h2></div>
           <p className="mt-1 text-xs text-sky-800">تظهر إشعارات نتيجة التوزيع حتى لو كنت خارج نطاق الـ 10 كم؛ النطاق يظل شرطًا لاختيار النقلات الجديدة فقط.</p>
-          <div className="mt-3 space-y-2">{dispatchState.notifications.map((notice: any) => <article key={notice.notification_id} className="rounded-xl border border-sky-100 bg-slate-900 p-3"><p className="font-black text-slate-100">{notice.title}</p><p className="mt-1 text-sm leading-6 text-slate-300">{notice.body}</p><p className="mt-1 text-[11px] text-slate-400">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</p></article>)}</div>
+          <div className="mt-3 space-y-2">{dispatchState.notifications.map((notice: any) => <article key={notice.notification_id} className="rounded-xl border border-sky-100 bg-white p-3"><p className="font-black text-slate-900">{notice.title}</p><p className="mt-1 text-sm leading-6 text-slate-600">{notice.body}</p><p className="mt-1 text-[11px] text-slate-500">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</p></article>)}</div>
         </section>}
       </div>
     </main>
