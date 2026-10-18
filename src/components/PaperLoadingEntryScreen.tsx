@@ -17,7 +17,7 @@ const parseCsv = (text: string): string[][] => {
       else quoted = !quoted;
     } else if (ch === ',' && !quoted) { row.push(cell); cell = ''; }
     else if ((ch === '\n' || ch === '\r') && !quoted) {
-      if (ch === '\r' && input[i + 1] === '\\n') i++;
+      if (ch === '\r' && input[i + 1] === '\n') i++;
       row.push(cell); cell = '';
       if (row.some(value => value.trim() !== '')) rows.push(row);
       row = [];
