@@ -747,7 +747,6 @@ export const DriverApp: React.FC = () => {
             <p className="mt-2 break-all font-mono text-xs">{position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}</p>
             <p className="mt-3 text-xs leading-5">قراءة الموقع وحدها لا تكفي؛ زر «أنا وصلت» يتحقق من النطاق والدقة وحداثة القراءة ويسجّل دخولك لقائمة الانتظار على السيرفر.</p>
           </div>}
-          {error && <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"><CircleAlert className="shrink-0" size={18}/><span>{error}</span></div>}
         </section>
         <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
           <div className="flex items-center gap-2"><FileText className="text-amber-800" size={22}/><h2 className="font-black">إسناد مباشر — في انتظار قبولك</h2></div>
