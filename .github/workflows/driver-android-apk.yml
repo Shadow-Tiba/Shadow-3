@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - shadow/phase1-hardening
+      - ui/redesign-safe
     paths:
       - 'src/**'
       - 'native/android/**'
