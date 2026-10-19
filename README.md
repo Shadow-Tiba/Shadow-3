@@ -13,16 +13,15 @@
 - Current Shadow directory state was rechecked on 2026-10-19: 2 offices, 23 factories, 12 quarries, 108 vehicle owners, 139 vehicles, 1 driver, and 2 `app_users` rows. `load_orders`, `bookings`, `actual_loading_records`, `loading_data_records`, and `delivery_confirmations` currently have zero rows. Do not blindly re-import: reconcile the existing directory rows against source records and verify provenance/completeness first.
 - Paper-load manual entry and CSV import UI/RPC are present on the review branch. The import RPC validates the file before inserts, preserves row/file provenance, and reports duplicates/conflicts.
 - Updated the Windows Main Office build workflow to target the same Shadow project as the Android review builds.
-- Phase 1 Shadow CI and Phase 1 build passed on commit `41da9940`; the newer Windows-targeting commit `a394531e` is under final build verification.
+- On 2026-10-19, Phase 1 Shadow CI and Phase 1 build passed for the latest draft candidate based on `shadow/phase1-hardening` (PR #4 head `870691bbb6834dcba45ee83918381d47aa414a11`). The run includes the full contract suite, TypeScript check, production build, disposable PostgreSQL migration chain, global RLS/direct-grant/SECURITY DEFINER gate, and loaded-trip cancellation regression gate. Signed APK/Windows artifacts and device smoke tests have not been produced from this candidate.
 - Changes remain on `shadow/phase1-hardening`; no merge to `main` and no Production writes were performed.
 
-### CI links
+### Current CI and review links
 
-- [Phase 1 Shadow CI — success](https://github.com/Midoelfawakhry/Tiba-Supplies/actions/runs/38976381080)
-- [Phase 1 build — success](https://github.com/Midoelfawakhry/Tiba-Supplies/actions/runs/38976380844)
-- [Migration integrity — success](https://github.com/Midoelfawakhry/Tiba-Supplies/actions/runs/38976368567)
-- [Signed Android builds — success](https://github.com/Midoelfawakhry/Tiba-Supplies/actions/runs/38976368540)
-- [Windows Main Office build — success](https://github.com/Midoelfawakhry/Tiba-Supplies/actions/runs/38976368645)
+- [Phase 1 Shadow CI — success, run 101](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39251969010)
+- [Phase 1 build — success, run 101](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39251968915)
+- [Dark Premium UI — draft PR #4](https://github.com/Shadow-Tiba/Shadow-3/pull/4)
+- These CI results do not replace authenticated live-session acceptance tests or physical-device visual review.
 
 ## Implementation completed on the review branch
 
@@ -51,14 +50,9 @@ Migration: `supabase/migrations/20261017100000_phase1_separate_loading_data_from
 
 ## Build artifacts
 
-The latest signed Android artifacts below were built from commit `41da994054fd531c3bdad68885dbada21a368775`. The Android build workflow pins the app to the intended Shadow project `bvyxiahpxogblkmtjxyx`.
+No signed Android APK or Windows package has been rebuilt from the current final candidate yet. Do not treat the older artifact links from the previous repository path as current release candidates.
 
-- [Ras Sedr Branch signed APK artifact](https://api.github.com/repos/Midoelfawakhry/Tiba-Supplies/actions/artifacts/12081411038)
-- [Main Office signed APK artifact](https://api.github.com/repos/Midoelfawakhry/Tiba-Supplies/actions/artifacts/12081212472)
-- [Driver signed APK artifact](https://api.github.com/repos/Midoelfawakhry/Tiba-Supplies/actions/artifacts/12080993649)
-- [Latest Windows Main Office build — in progress](https://github.com/Midoelfawakhry/Tiba-Supplies/actions/runs/38981528252)
-
-Do not use older Windows artifacts built before `.github/workflows/windows-office-build.yml` was updated to the intended Shadow URL. The newer Windows artifact must finish and then be smoke-tested. Successful build jobs do not replace installation/device smoke tests or authenticated database acceptance tests. GitHub artifact retention is time-limited.
+After the draft UI change is approved, build the Main Office, Ras Sedr Branch, and Driver Android packages plus the Windows Main Office package from the final candidate commit; verify each embeds `https://bvyxiahpxogblkmtjxyx.supabase.co`, then install and smoke-test on real devices. CI build success alone is not a release sign-off.
 
 ## Remaining work — prioritized
 
@@ -131,7 +125,10 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 - [x] Paper-load entry/import UI and secure RPC implemented on the review branch.
 - [x] Paper-load RPCs and current migration chain applied to intended Shadow.
 - [x] Core schema, required RPCs, RLS, Storage policies, and dispatch scheduler verified.
-- [x] Phase 1 CI, disposable PostgreSQL baseline, and v191 clean-chain tests passed on commit `a394531e`.
+- [x] Phase 1 CI, TypeScript check, production build, disposable PostgreSQL baseline, and v191 clean-chain tests passed for draft PR #4 head `870691bb`.
+- [x] Global SQL security gate added: all public tables must keep RLS enabled, client table grants stay revoked, and SECURITY DEFINER functions require a fixed search_path with no anon/PUBLIC execute.
+- [x] Loaded-trip cancellation regression SQL added to the clean-chain CI workflow and passed.
+- [x] Shadow SQL claim-simulation verified BRANCH cancellation/redirect are denied and HEAD_OFFICE passes the authorization gate; no booking data was created or changed.
 - [ ] Provision real application users and import validated real directory data.
 - [ ] Authenticated database acceptance tests pass against intended Shadow.
 - [ ] Android and Windows device/package smoke tests pass (vehicle tracking is user-confirmed working; remaining release checks are listed in the tracking handover).
