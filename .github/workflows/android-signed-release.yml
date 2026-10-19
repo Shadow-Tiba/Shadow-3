@@ -286,7 +286,14 @@ jobs:
         run: |
           APK="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK" || { echo "::error::Signed release APK was not produced."; exit 1; }
-          echo "Release APK generated for $TIBA_APP_MODE."
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$APKSIGNER" ]; then
+            echo "::error::Android apksigner tool was not found; refusing to mark the APK verified."
+            exit 1
+          fi
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          sha256sum "$APK"
+          echo "Signed APK cryptographic verification passed for $TIBA_APP_MODE."
 
       - name: Upload signed release APK
         uses: actions/upload-artifact@v4
