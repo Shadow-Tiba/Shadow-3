@@ -262,4 +262,63 @@ begin
 end
 $assignment$;
 
+
+-- Global security posture regression gate: client table access stays RPC-only,
+-- and SECURITY DEFINER functions must not be executable by anon/PUBLIC or lack a fixed search_path.
+do $security$
+declare
+  unsafe_tables text[];
+  exposed_tables text[];
+  unsafe_definers text[];
+begin
+  select array_agg(format('%I.%I', n.nspname, c.relname)) into unsafe_tables
+  from pg_class c
+  join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public'
+    and c.relkind in ('r','p')
+    and not c.relrowsecurity;
+
+  if unsafe_tables is not null then
+    raise exception 'SECURITY_RLS_DISABLED: %', array_to_string(unsafe_tables, ', ');
+  end if;
+
+  select array_agg(format('%I.%I', n.nspname, c.relname)) into exposed_tables
+  from pg_class c
+  join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public'
+    and c.relkind in ('r','p')
+    and (
+      has_table_privilege('anon', c.oid, 'SELECT')
+      or has_table_privilege('anon', c.oid, 'INSERT')
+      or has_table_privilege('anon', c.oid, 'UPDATE')
+      or has_table_privilege('anon', c.oid, 'DELETE')
+      or has_table_privilege('authenticated', c.oid, 'SELECT')
+      or has_table_privilege('authenticated', c.oid, 'INSERT')
+      or has_table_privilege('authenticated', c.oid, 'UPDATE')
+      or has_table_privilege('authenticated', c.oid, 'DELETE')
+    );
+
+  if exposed_tables is not null then
+    raise exception 'SECURITY_DIRECT_CLIENT_TABLE_GRANTS: %', array_to_string(exposed_tables, ', ');
+  end if;
+
+  select array_agg(format('%I.%I(%s)', n.nspname, p.proname, pg_get_function_identity_arguments(p.oid)))
+  into unsafe_definers
+  from pg_proc p
+  join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public'
+    and p.prosecdef
+    and (
+      p.proconfig is null
+      or not exists (select 1 from unnest(p.proconfig) setting where setting like 'search_path=%')
+      or has_function_privilege('anon', p.oid, 'EXECUTE')
+      or has_function_privilege('public', p.oid, 'EXECUTE')
+    );
+
+  if unsafe_definers is not null then
+    raise exception 'SECURITY_DEFINER_GRANT_OR_SEARCH_PATH_UNSAFE: %', array_to_string(unsafe_definers, ', ');
+  end if;
+end
+$security$;
+
 rollback;
