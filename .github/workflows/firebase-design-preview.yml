@@ -22,6 +22,9 @@ jobs:
         run: npm run lint
       - name: Build web app
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
       - name: Deploy temporary Firebase Hosting preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
