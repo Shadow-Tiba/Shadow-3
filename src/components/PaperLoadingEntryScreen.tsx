@@ -35,7 +35,7 @@ const today = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
-export const PaperLoadingEntryScreen: React.FC<{ csvOnly?: boolean }> = ({ csvOnly = false }) => {
+export const PaperLoadingEntryScreen: React.FC<{ csvOnly?: boolean; onImported?: () => void | Promise<void> }> = ({ csvOnly = false, onImported }) => {
   const [directory, setDirectory] = useState<Directory>({});
   const [loadDate, setLoadDate] = useState(today());
   const [vehicleId, setVehicleId] = useState('');
@@ -154,6 +154,7 @@ export const PaperLoadingEntryScreen: React.FC<{ csvOnly?: boolean }> = ({ csvOn
       setImportFile(null);
       setImportRows([]);
       if (!csvOnly) await loadDirectory();
+      await onImported?.();
     } catch (e: any) {
       setImportError(e?.message || 'تعذر استيراد ملف التحميلات الورقية.');
     } finally {
