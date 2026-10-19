@@ -40,8 +40,8 @@ jobs:
       TIBA_APP_MODE: ${{ matrix.app_mode }}
       VITE_SUPABASE_URL: https://bvyxiahpxogblkmtjxyx.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_xiPfODQDOUSsTbgRQH9z6Q_izM6SFKn
-      ANDROID_VERSION_CODE: 44
-      ANDROID_VERSION_NAME: 1.0.44
+      ANDROID_VERSION_CODE: 45
+      ANDROID_VERSION_NAME: 1.0.45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
