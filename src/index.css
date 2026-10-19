@@ -58,6 +58,69 @@
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgb(59 130 246 / 12%);
   }
+
+  /* Visual refinement only: unify card rhythm, reduce harsh borders, and keep RTL forms readable. */
+  #root main {
+    line-height: 1.55;
+  }
+  #root main > section,
+  #root main article,
+  #root main aside {
+    min-width: 0;
+  }
+  #root main article {
+    overflow-wrap: anywhere;
+  }
+  #root main button:disabled {
+    cursor: not-allowed;
+  }
+  #root input::placeholder,
+  #root textarea::placeholder {
+    color: #8292a5;
+    opacity: 1;
+  }
+  #root table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+  }
+  #root th {
+    color: #52657a;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  #root td, #root th {
+    padding: 0.75rem 0.85rem;
+    vertical-align: middle;
+  }
+  #root :is(input, select, textarea) {
+    min-height: 2.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  #root main {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  html { font-size: 14px; }
+  #root main {
+    padding-inline: 0.75rem;
+  }
+  #root main :is(section, article, aside) {
+    border-radius: 1.1rem;
+  }
+  #root main :is(input, select, textarea, button) {
+    max-width: 100%;
+  }
+  #root table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }
 
 @media print {
