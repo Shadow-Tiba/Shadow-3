@@ -38,8 +38,6 @@ Use an isolated Supabase staging database only. Do not seed or mutate production
 | BR-05 | HEAD deactivates a branch employee | Subsequent branch snapshot and other RPCs denied; audit record retained | Auth session and RPC result |
 | BR-06 | Branch app user attempts to edit/cancel/redirect/create loads | No write controls in UI and server-side authorization rejects direct RPC calls | UI smoke test and RPC responses |
 | DATA-01 | Historical Excel/WhatsApp files are present only as reference/staging data | No operational booking/loading rows imported | Counts before/after |
-
-
 | CAN-05 | Attempt to cancel a booking whose status is `LOADED` through any write path | Rejected with `LOADED_TRIP_CANNOT_BE_CANCELLED`; booking and loading evidence unchanged | RPC/direct-update result and before/after rows |
 | CAN-06 | Attempt cancellation after actual weight or delivery confirmation exists | Rejected with `ACTUAL_DELIVERY_ALREADY_RECORDED`; no state change | Error and before/after rows |
 | BR-07 | BRANCH calls cancellation or redirect RPCs | Rejected server-side; booking and audit state unchanged | RPC responses and before/after rows |
