@@ -26,7 +26,15 @@ test("paper loading form validates weight and uses the scoped server RPC", () =>
   assert.match(screen, /p_source_file_name: null/);
   assert.match(screen, /p_source_row_number: null/);
   assert.match(board, /PaperLoadingEntryScreen/);
+  assert.match(board, /<PaperLoadingEntryScreen csvOnly \/>/);
   assert.match(board, /activeScreen === 'actual'/);
+  assert.match(screen, /csvOnly\?: boolean/);
+  assert.match(screen, /!csvOnly && \(loadingDirectory \?/);
+  assert.match(screen, /duplicateHeaders/);
+  assert.match(screen, /malformedRow/);
+  assert.match(screen, /duplicateSourceIds/);
+  assert.match(screen, /معاينة بيانات التحميل الفعلي قبل الإرسال/);
+  assert.match(screen, /importRows\.slice\(0, 5\)/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
