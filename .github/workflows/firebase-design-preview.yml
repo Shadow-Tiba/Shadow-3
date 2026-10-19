@@ -10,8 +10,10 @@ jobs:
   deploy-preview:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout selected design branch
+      - name: Checkout UI redesign branch
         uses: actions/checkout@v4
+        with:
+          ref: ui/redesign-safe
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
