@@ -8,6 +8,7 @@ DECLARE
   v_trigger_def text;
   v_cancel_def text;
   v_redirect_def text;
+  v_authorizer_def text;
 BEGIN
   SELECT count(*) INTO v_trigger_count
   FROM pg_trigger t
@@ -34,20 +35,24 @@ BEGIN
   END IF;
 
   SELECT pg_get_functiondef(to_regprocedure(
-    'public.office_cancel_booking(uuid,text,boolean)'
+    'public.main_office_cancel_booking(uuid,text)'
   )) INTO v_cancel_def;
   SELECT pg_get_functiondef(to_regprocedure(
-    'public.office_redirect_booking(uuid,uuid,text)'
+    'public.main_office_redirect_booking(uuid,uuid,text)'
   )) INTO v_redirect_def;
+  SELECT pg_get_functiondef(to_regprocedure(
+    'public.current_main_office_user()'
+  )) INTO v_authorizer_def;
 
-  IF v_cancel_def IS NULL OR v_redirect_def IS NULL THEN
-    RAISE EXCEPTION 'OFFICE_MUTATION_RPC_MISSING';
+  IF v_cancel_def IS NULL OR v_redirect_def IS NULL OR v_authorizer_def IS NULL THEN
+    RAISE EXCEPTION 'OFFICE_MUTATION_RPC_OR_AUTHORIZER_MISSING';
   END IF;
 
-  IF position('INSUFFICIENT_ROLE' IN upper(v_cancel_def)) = 0
-     OR position('INSUFFICIENT_ROLE' IN upper(v_redirect_def)) = 0
-     OR position('R.NAME IN (''ADMIN'', ''HEAD_OFFICE'')' IN upper(v_cancel_def)) = 0
-     OR position('R.NAME IN (''ADMIN'', ''HEAD_OFFICE'')' IN upper(v_redirect_def)) = 0 THEN
+  IF position('CURRENT_MAIN_OFFICE_USER()' IN upper(v_cancel_def)) = 0
+     OR position('CURRENT_MAIN_OFFICE_USER()' IN upper(v_redirect_def)) = 0
+     OR position('MAIN_OFFICE_ACCESS_REQUIRED' IN upper(v_authorizer_def)) = 0
+     OR position('AU.ROLE IN (''ADMIN'',''HEAD_OFFICE'')' IN upper(v_authorizer_def)) = 0
+     OR position('O.OFFICE_CODE=''MAIN''' IN upper(v_authorizer_def)) = 0 THEN
     RAISE EXCEPTION 'BRANCH_MUST_NOT_CANCEL_OR_REDIRECT';
   END IF;
 END
