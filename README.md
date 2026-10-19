@@ -208,3 +208,14 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 - Review 38 unindexed foreign-key notices and 5 unused-index notices against actual query plans/workload; do not blindly add/drop indexes.
 - Still required: physical-device install/update without data loss; authenticated MAIN/BRANCH/DRIVER acceptance; background GPS/geofence, dispatch visibility, actual weight, scale-ticket upload, delivery confirmation, and reporting smoke tests; authenticated AI-assistant end-to-end test.
 - No Production data writes, Production migration, or merge to `main` were performed.
+
+## Source data reconciliation — 2026-10-19
+
+- Historical loading source `بيانات_التحميل_بكود_العربيات.xlsx`, sheet `بيانات التحميل`: 417 rows, source indices 0–416.
+- `Tiba_Supplies_Historical_Loading_Staging_Import.csv`: 417 rows. Compared date, source plate, driver, quarry, factory, ticket number, and source row mapping against the source workbook: **0 field mismatches, 0 missing source rows, 0 un-staged source rows**.
+- Source quality: 314/417 rows have blank ticket numbers; 5 rows (source indices 412–416) contain only the date and no vehicle, vehicle code, driver, quarry, factory, or ticket. Staging `quality_note` is blank for all 417 rows. Do not import these as actual loading/delivery evidence or actual weights; annotate/review quality before any future historical staging import.
+- Fleet/owner source import contains 138 unique plate combinations and 107 unique owner names. Live Shadow contains all 138 source plates with matching owner names, plus one additional active record: plate `9999 / 9999`, owner `روميو`, owner code `OW-000001`, vehicle code `VH-000003`, office `RAS_SEDR`, created 2026-10-17. No active booking was found for it. This looks like a test/seed record but its purpose is not proven; **do not delete or modify it without owner confirmation**.
+- Source fleet has no duplicate plate combinations; live Shadow has no duplicate plate combinations. The 107 source owner names are all present in live Shadow; the additional owner is `روميو`.
+- Historical driver names do not prove current driver-to-vehicle assignments. Do not infer live assignments from the historical workbook.
+- Firebase design preview previously rendered a missing-configuration message because its build did not receive Vite Supabase environment values. Workflow `.github/workflows/firebase-design-preview.yml` now sets the Tiba Shadow URL/publishable key and verifies the built bundle before deployment. Awaiting its workflow run and browser confirmation.
+- No operational records were inserted or deleted as part of this reconciliation. Production remains untouched.
