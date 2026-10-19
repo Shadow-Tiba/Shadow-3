@@ -20,13 +20,23 @@ test("paper loading entry is Main Office-authorized and writes a paper provenanc
   assert.match(migration, /grant execute on function public\.main_office_record_paper_actual_load.*to authenticated/i);
 });
 
-test("paper loading form validates weight and uses the scoped server RPC", () => {
+test("main office actual-loading workflow does not expose a paper-load entry screen", () => {
   assert.match(screen, /main_office_record_paper_actual_load/);
-  assert.match(screen, /weight <= 0 \|\| weight > 1000/);
-  assert.match(screen, /p_source_file_name: null/);
-  assert.match(screen, /p_source_row_number: null/);
-  assert.match(board, /PaperLoadingEntryScreen/);
-  assert.match(board, /activeScreen === 'actual'/);
+  assert.match(screen, /تسجيل التحميل الورقي/);
+  assert.doesNotMatch(board, /PaperLoadingEntryScreen/);
+  assert.match(board, /activeScreen === 'actual' \? <OfficeDirectoryScreen initialSection="actual" showSectionTabs=\{false\} \/>/);
+  assert.match(screen, /main_office_import_paper_loads/);
+  assert.match(screen, /تسجيل تحميل ورقي يدوي/);
+  assert.match(screen, /duplicateSourceIds/);
+  assert.ok(screen.includes("text.replace(/^\\uFEFF/, '')"), "CSV parser must strip a UTF-8 BOM");
+  assert.ok(screen.includes("ch === '\\n'") && screen.includes("ch === '\\r'"), "CSV parser must recognize LF and CR row endings");
+  assert.ok(screen.includes("input[i + 1] === '\\n'"), "CSV parser must consume the LF in CRLF row endings");
+  assert.match(screen, /معاينة بيانات التحميل الفعلي قبل الإرسال/);
+  assert.match(screen, /importRows\.slice\(0, 5\)/);
+  assert.match(screen, /scope="col"/);
+  assert.match(screen, /duplicateHeaders/);
+  assert.match(screen, /malformedRow/);
+  assert.match(screen, /عدد الخلايا غير مطابق لعدد الأعمدة/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
