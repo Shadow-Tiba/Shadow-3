@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - shadow/phase1-hardening
+      - ui/dark-premium-final
     paths:
       - 'src/**'
       - 'native/android/**'
