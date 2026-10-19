@@ -10,7 +10,7 @@
 - Applied the clean Phase 1 migration chain to the intended Shadow project, including the paper-load entry/import RPCs and the managed `pg_cron` dispatch-window scheduler. The existing migration-ledger remediation row was preserved; no database reset was performed.
 - Verified 20 public tables exist and all 20 have RLS enabled; required dashboard, delivery, and paper-import RPCs exist; direct client table grants remain revoked; `ensure_rls` remains installed.
 - Confirmed the scheduler job `tiba-finalize-expired-dispatch-windows` is scheduled every minute.
-- Seeded only the two baseline office reference rows: Main Office and Ras Sedr. Business directories, auth users, bookings, and loading records remain empty; no synthetic business records or Production data were copied.
+- Current Shadow directory state was rechecked on 2026-10-19: 2 offices, 23 factories, 12 quarries, 108 vehicle owners, 139 vehicles, 1 driver, and 2 `app_users` rows. `load_orders`, `bookings`, `actual_loading_records`, `loading_data_records`, and `delivery_confirmations` currently have zero rows. Do not blindly re-import: reconcile the existing directory rows against source records and verify provenance/completeness first.
 - Paper-load manual entry and CSV import UI/RPC are present on the review branch. The import RPC validates the file before inserts, preserves row/file provenance, and reports duplicates/conflicts.
 - Updated the Windows Main Office build workflow to target the same Shadow project as the Android review builds.
 - Phase 1 Shadow CI and Phase 1 build passed on commit `41da9940`; the newer Windows-targeting commit `a394531e` is under final build verification.
@@ -64,8 +64,8 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 
 ### P0 — real directory data and access provisioning
 
-1. Import/validate real factory and quarry master data, then vehicle owners, vehicles, and drivers using the source records. Do not invent missing codes or names.
-2. Provision the actual Supabase Auth users and matching `app_users`/driver identities through the approved account-setup flow; there are currently no application users in this new project.
+1. Reconcile the existing factory, quarry, owner, vehicle, and driver directories against the source records; verify codes, names, office mappings, and row-level provenance. Do not invent missing codes/names or blindly re-import existing rows.
+2. Verify the two existing `app_users` rows and the driver/Auth mapping correspond to the intended operational accounts and correct role/office scope; provision only genuinely missing accounts through the approved account-setup flow.
 3. Run authenticated acceptance tests for Main Office, Ras Sedr Branch, and Driver roles, including paper entry/import, duplicate re-import, delivery confirmation, reports, and scale-ticket access.
 4. Define and test correction/re-import behavior, row-level failures, duplicate files, and concurrent daily numbering.
 
@@ -109,6 +109,16 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 - Never put service-role credentials in client configuration.
 - Preserve v191 AI assistant and native driver tracking; do not deploy an AI Edge Function or modify tracking as part of this schema task.
 - Do not use PR 63 as a shortcut.
+
+## Current Shadow verification — 2026-10-19
+
+- Target checked: Supabase project `bvyxiahpxogblkmtjxyx` (`Tiba Shadow`, `eu-west-1`); no Production database was queried for writes or modified.
+- Schema: 21 public tables; all 21 have RLS enabled. Direct table SELECT/INSERT/UPDATE/DELETE grants to `authenticated` and direct SELECT/INSERT grants to `anon` were absent in the current privilege check. Tables currently have no RLS policies, so RPC grants, function authorization and Storage policies remain the actual access boundary and must continue to be audited.
+- Functions: 60 public `SECURITY DEFINER` functions were found; all have a fixed `search_path`; none is executable by `anon` or `PUBLIC`; 48 are executable by `authenticated`. This is not a blanket defect: each exposed function must be checked for the intended role/office guard. Supabase Security Advisor still reports these authenticated SECURITY DEFINER functions for review.
+- Directory integrity checks returned zero duplicate factory codes, quarry codes, or non-null vehicle plate numbers; zero vehicles with a missing owner reference; and zero broken `app_users`/driver references to `auth.users`. These checks do not establish that every source-sheet row has been imported.
+- Loaded-trip cancellation regression SQL ran successfully against Shadow and verified the trigger exists exactly once, guards loaded trips and delivery evidence, and the cancellation/redirect RPCs remain gated by the Main Office authorizer. These are definition-level checks only; authenticated runtime tests with separate HEAD_OFFICE, BRANCH, and DRIVER sessions remain pending.
+- Security Advisor also reports leaked-password protection disabled. The available project connection does not expose an Auth-settings update action; enable it in Supabase Auth settings and verify sign-in compatibility before production rollout.
+- Performance Advisor reports unindexed foreign keys. Review and add indexes selectively after examining query patterns and migration parity; do not apply a blanket index migration without checking current schema and workload.
 
 ## Acceptance checklist
 
