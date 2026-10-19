@@ -20,6 +20,10 @@ permissions:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+    env:
+      VITE_APP_MODE: office
+      VITE_SUPABASE_URL: https://bvyxiahpxogblkmtjxyx.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_xiPfODQDOUSsTbgRQH9z6Q_izM6SFKn
     steps:
       - name: Checkout UI redesign branch
         uses: actions/checkout@v4
@@ -35,6 +39,22 @@ jobs:
         run: npm run lint
       - name: Build web app
         run: npm run build
+      - name: Verify preview bundle targets Tiba Shadow
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const expectedUrl = process.env.VITE_SUPABASE_URL;
+          const expectedKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          if (!expectedUrl || !expectedKey) throw new Error('Required Tiba Shadow build configuration is missing.');
+          const files = fs.readdirSync('dist/assets').filter(f => f.endsWith('.js'));
+          if (!files.length) throw new Error('No JavaScript bundle found.');
+          const bundle = files.map(f => fs.readFileSync(path.join('dist/assets', f), 'utf8')).join('\\n');
+          if (!bundle.includes(expectedUrl)) throw new Error('Tiba Shadow URL missing from preview bundle.');
+          if (!bundle.includes(expectedKey)) throw new Error('Tiba Shadow publishable key missing from preview bundle.');
+          console.log('Preview bundle targets Tiba Shadow; publishable key value not logged.');
+          NODE
       - name: Deploy temporary Firebase Hosting preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
