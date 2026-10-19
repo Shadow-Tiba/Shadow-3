@@ -173,18 +173,38 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 - If the tracking issue recurs, record the exact UI error and inspect matching PostgREST/Edge logs before changing RPC names again.
 - Keep work on `shadow/phase1-hardening`; do not merge to `main` or write to Production without explicit approval.
 
-## Dark Premium candidate — 2026-10-19
+## Dark Premium + CSV paper-load candidate — 2026-10-19
 
 - Candidate branch: `ui/dark-premium-final`; draft PR #4 targets `shadow/phase1-hardening`. Do not merge without explicit release approval.
-- UI change is CSS-only in `src/index.css`: dark surfaces, RTL layout, focus-visible styles, responsive breakpoints, print behavior, and reduced-motion handling.
-- Temporary visual preview (expires after 7 days): https://mido-supplies--design-preview-iqeyloro.web.app
-- Latest completed Phase 1 Shadow CI: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39258529018 — success.
-- Latest completed Phase 1 build: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39258529108 — success.
-- Android release workflow verifies the embedded Tiba Shadow URL and publishable key in the built bundle, then verifies the APK signature with `apksigner` and prints SHA-256 before upload. All three APKs passed in run https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259341136. Artifacts: [Office APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259341136/artifacts/12190100857), [Ras Sedr Branch APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259341136/artifacts/12188169654), [Driver APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259341136/artifacts/12190485421). Android version is `1.0.45` / versionCode `45`.
-- Windows build workflow verifies the embedded Tiba Shadow URL and configured publishable key before packaging. Version-aligned Windows EXE is `Tiba-Supplies-Office-1.0.45-Windows.exe`: [Windows + web build artifacts](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259175786) (Windows EXE [artifact](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259175786/artifacts/12189013197), web build [artifact](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259175786/artifacts/12190310047)).
-- Latest completed Phase 1 Shadow CI after release-workflow changes: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259349637 — success. Latest completed Phase 1 build: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39259349667 — success.
-- These are build artifacts only. Real device installation/update, preserving app data, authenticated role acceptance, and background GPS/dispatch/delivery smoke tests have not been performed from this session.
-- Read-only geofence code review: `driver_get_portal_snapshot()` only returns available loads when the driver's latest captured location is fresh (within 10 minutes and no more than 1 minute in the future) and within the active `RAS_SEDR` office's configured 10,000 m radius. Ras Sedr coordinates are configured; the MAIN office intentionally has no geofence coordinates. End-to-end load visibility still needs authenticated device acceptance with test load data.
-- Current Shadow security advisor findings: 21 public tables have RLS enabled with no direct table policies; direct client table grants are revoked and the app is designed around scoped SECURITY DEFINER RPCs. 48 SECURITY DEFINER functions are executable by authenticated users, but none by anon; review of returned definitions showed explicit main-office/branch guards or driver identity checks for the reviewed client-executable functions. This is a review finding, not a substitute for role-based acceptance tests.
-- Remaining blockers: enable leaked-password protection in Supabase Auth settings; review 38 unindexed foreign keys and 5 unused-index notices against query workload; run authenticated MAIN/BRANCH/DRIVER acceptance tests; install the APKs on real devices and verify update/data preservation, background location, arrival, actual weight, scale-ticket upload, delivery confirmation, and reports. Source reconciliation findings: the loading workbook and staging CSV each contain 417 rows and match field-for-field, but 5 rows contain only a date and no vehicle/driver/quarry/factory, one additional row is missing the driver name, and 314 rows have blank ticket numbers. The file has no actual-weight field, so it must not be imported as actual delivery evidence. The master-data workbook lists 138 vehicles/107 owners while live Shadow lists 139/108; resolve the exact plate/owner discrepancy before directory import.
+- UI: Dark Premium CSS across Main Office, Ras Sedr Branch, and Driver, with RTL/responsive/focus/print/reduced-motion handling.
+- Main Office actual-loading screen exposes the CSV import panel in CSV-only mode and hides the manual-entry form in that workflow. CSV preflight rejects duplicate headers, malformed row widths, and duplicate source IDs; strips UTF-8 BOM, handles CR/LF/CRLF, shows a five-row preview, and refreshes the actual-loading list after successful import. Server RPC still validates the full batch before saving; no partial import is performed for a rejected batch.
+- Temporary visual preview (7-day channel): https://mido-supplies--design-preview-iqeyloro.web.app (deployed successfully by https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131464).
+- Latest completed Phase 1 Shadow CI: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444679 — success.
+- Latest completed Phase 1 build: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444685 — success.
+
+### Verified v1.0.45 build artifacts
+
+- Android version `1.0.45`, versionCode `45`. The build verified the Tiba Shadow Supabase URL/publishable key in the bundle and verified each APK signature with `apksigner`; all three artifacts completed successfully in https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602.
+  - [Main Office APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602/artifacts/12191946434)
+  - [Ras Sedr Branch APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602/artifacts/12190826660)
+  - [Driver APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602/artifacts/12190172923)
+  - All three use the same release certificate fingerprint: `c8f913a6110f76416e4f997cda6d3dc8c0f0d5ed4af9528512995c12e0e79061`.
+- Windows Office `Tiba-Supplies-Office-1.0.45-Windows.exe` passed the embedded endpoint check and packaging in https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131456.
+  - [Windows portable EXE](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131456/artifacts/12191931543)
+  - [Office web build](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131456/artifacts/12191621262)
+- These are candidate test artifacts, not production-approved releases.
+
+### Data reconciliation — do not import yet
+
+- Historical loading workbook and staging CSV each contain 417 rows and match field-for-field. Five rows contain only a date and no vehicle/driver/quarry/factory; one additional row is missing the driver name; 314 rows have blank ticket numbers.
+- The historical file has no actual-weight field and uses source vehicle codes/names instead of the import RPC's required current directory codes. It must not be imported as actual-delivery evidence. It needs mapping to current directory codes and a verified actual-weight source before import.
+- Master-data workbook lists 138 vehicles and 107 owners; live Shadow lists 139 vehicles and 108 owners. Reconcile exact plate/owner identities before directory import.
+- The master workbook has 124 proposed factory names and 22 proposed quarry names flagged for deduplication/spelling review; live Shadow directories contain 23 factories and 12 quarries. Reconcile source names and codes before importing or modifying directory rows.
+
+### Security and release gates
+
+- Read-only review found RLS enabled on all 21 public tables and direct client table grants revoked. The app's current access pattern uses scoped SECURITY DEFINER RPCs; 48 such functions are executable by authenticated users and none by anon. Function-by-function authorization review and role-based acceptance remain required.
+- Supabase Security Advisor reports leaked-password protection disabled. Enable it in Supabase Auth settings.
+- Review 38 unindexed foreign-key notices and 5 unused-index notices against actual query plans/workload; do not blindly add/drop indexes.
+- Still required: physical-device install/update without data loss; authenticated MAIN/BRANCH/DRIVER acceptance; background GPS/geofence, dispatch visibility, actual weight, scale-ticket upload, delivery confirmation, and reporting smoke tests; authenticated AI-assistant end-to-end test.
 - No Production data writes, Production migration, or merge to `main` were performed.
