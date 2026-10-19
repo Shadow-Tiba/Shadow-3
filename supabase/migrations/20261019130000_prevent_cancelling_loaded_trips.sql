@@ -15,13 +15,17 @@ BEGIN
       RAISE EXCEPTION 'LOADED_TRIP_CANNOT_BE_CANCELLED';
     END IF;
 
-    -- Independent evidence guard: no cancellation after actual weight or delivery
-    -- confirmation has been recorded, regardless of which write path is used.
+    -- Independent evidence guard: no cancellation after actual weight or a
+    -- delivery_confirmations row has been recorded, regardless of write path.
     IF EXISTS (
       SELECT 1
       FROM public.actual_loading_records a
       WHERE a.booking_id = OLD.booking_id
-        AND (a.actual_weight IS NOT NULL OR a.delivery_confirmed_at IS NOT NULL)
+        AND a.actual_weight IS NOT NULL
+    ) OR EXISTS (
+      SELECT 1
+      FROM public.delivery_confirmations d
+      WHERE d.booking_id = OLD.booking_id
     ) THEN
       RAISE EXCEPTION 'ACTUAL_DELIVERY_ALREADY_RECORDED';
     END IF;
