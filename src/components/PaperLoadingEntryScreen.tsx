@@ -35,7 +35,7 @@ const today = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
-export const PaperLoadingEntryScreen: React.FC = () => {
+export const PaperLoadingEntryScreen: React.FC<{ csvOnly?: boolean }> = ({ csvOnly = false }) => {
   const [directory, setDirectory] = useState<Directory>({});
   const [loadDate, setLoadDate] = useState(today());
   const [vehicleId, setVehicleId] = useState('');
@@ -78,7 +78,7 @@ export const PaperLoadingEntryScreen: React.FC = () => {
     }
   }
 
-  useEffect(() => { void loadDirectory(); }, []);
+  useEffect(() => { if (!csvOnly) void loadDirectory(); }, [csvOnly]);
 
   async function prepareCsv(file: File | null) {
     setImportFile(file);
@@ -90,6 +90,10 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       const parsed = parseCsv(await file.text());
       if (parsed.length < 2) throw new Error('ملف CSV لازم يحتوي على صف عناوين وصف بيانات واحد على الأقل.');
       const headers = parsed[0].map(value => value.trim().toLowerCase());
+      const duplicateHeaders = headers.filter((header, index) => header && headers.indexOf(header) !== index);
+      if (duplicateHeaders.length) throw new Error(`عناوين أعمدة مكررة في الملف: ${Array.from(new Set(duplicateHeaders)).join(', ')}. صحّح العناوين قبل الاستيراد.`);
+      const malformedRow = parsed.slice(1).findIndex(values => values.length !== headers.length);
+      if (malformedRow >= 0) throw new Error(`عدد الخلايا غير مطابق لعدد الأعمدة في الصف ${malformedRow + 2}. راجع الفواصل وعلامات الاقتباس في الملف.`);
       const required = ['load_date','vehicle_code','driver_code','factory_code','quarry_code','actual_weight'];
       const missing = required.filter(header => !headers.includes(header));
       if (missing.length) throw new Error(`أعمدة مطلوبة ناقصة: ${missing.join(', ')}`);
@@ -112,8 +116,17 @@ export const PaperLoadingEntryScreen: React.FC = () => {
         };
       });
       if (rows.length > 2000) throw new Error('الحد الأقصى للاستيراد في المرة الواحدة 2000 صف.');
+      const seenSourceIds = new Set<string>();
+      const duplicateSourceIds = new Set<string>();
+      for (const row of rows) {
+        const sourceId = row.source_record_id?.trim();
+        if (!sourceId) continue;
+        if (seenSourceIds.has(sourceId)) duplicateSourceIds.add(sourceId);
+        seenSourceIds.add(sourceId);
+      }
+      if (duplicateSourceIds.size) throw new Error(`معرّفات مصدر مكررة داخل الملف: ${Array.from(duplicateSourceIds).slice(0, 5).join(', ')}. صحّح التكرارات قبل الاستيراد.`);
       setImportRows(rows);
-      setImportMessage(`تمت قراءة ${rows.length} صف. راجع المعاينة ثم ابدأ الاستيراد.`);
+      setImportMessage(`تمت قراءة ${rows.length} صفًا. راجع المعاينة؛ سيجري التحقق من الأكواد والتكرارات والتعارضات في قاعدة البيانات قبل حفظ أي سجل.`);
     } catch (e: any) {
       setImportError(e?.message || 'تعذر قراءة ملف CSV.');
     }
@@ -140,7 +153,7 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       setImportMessage(`اكتمل الاستيراد: ${data.inserted} سجل جديد، ${data.duplicates} صف مكرر تم تخطيه، من إجمالي ${data.received} صف.`);
       setImportFile(null);
       setImportRows([]);
-      await loadDirectory();
+      if (!csvOnly) await loadDirectory();
     } catch (e: any) {
       setImportError(e?.message || 'تعذر استيراد ملف التحميلات الورقية.');
     } finally {
@@ -216,14 +229,14 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       <div className="flex items-center gap-3">
         <span className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-800"><FilePlus2 size={22}/></span>
         <div>
-          <h2 className="text-lg font-black text-slate-900">تسجيل تحميل من الورق</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">إدخال التحميل الفعلي من الدفاتر دون إنشاء حجز وهمي أو تأكيد تسليم للسائق.</p>
+          <h2 className="text-lg font-black text-slate-900">{csvOnly ? 'استيراد التحميل الفعلي من CSV' : 'تسجيل تحميل من الورق'}</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{csvOnly ? 'استيراد بيانات الدفاتر الفعلية دفعة واحدة، مع مراجعة المعاينة والتحقق قبل الحفظ.' : 'إدخال التحميل الفعلي من الدفاتر دون إنشاء حجز وهمي أو تأكيد تسليم للسائق.'}</p>
         </div>
       </div>
-      <button type="button" onClick={() => void loadDirectory()} disabled={loadingDirectory} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-60"><RefreshCw size={15} className={loadingDirectory ? 'animate-spin' : ''}/> تحديث الدليل</button>
+      {!csvOnly && <button type="button" onClick={() => void loadDirectory()} disabled={loadingDirectory} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 disabled:opacity-60"><RefreshCw size={15} className={loadingDirectory ? 'animate-spin' : ''}/> تحديث الدليل</button>}
     </div>
-    {error && <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
-    {success && <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{success}</div>}
+    {!csvOnly && error && <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
+    {!csvOnly && success && <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{success}</div>}
     <div className="mb-5 rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
       <h3 className="font-black text-slate-900">استيراد شيت التحميلات الورقية (CSV)</h3>
       <p className="mt-1 text-sm leading-6 text-slate-600">استخدم أكواد العربية والسائق والمصنع والمحجر كما هي في دليل التطبيق. الاستيراد يتحقق من الملف كاملًا قبل الحفظ، ويمنع إعادة استيراد نفس اسم الملف ورقم الصف.</p>
@@ -231,12 +244,12 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       <input type="file" accept=".csv,text/csv" disabled={importing} onChange={event => void prepareCsv(event.target.files?.[0] ?? null)} className="mt-3 block w-full rounded-xl border border-slate-300 bg-white p-2 text-sm"/>
       {importError && <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{importError}</div>}
       {importMessage && <div role="status" className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{importMessage}</div>}
-      {importRows.length > 0 && <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3">
-        <span className="text-sm font-bold text-slate-700">معاينة: {importRows.length} صف · أول صف: {importRows[0].load_date} · {importRows[0].vehicle_code} · {importRows[0].actual_weight} طن</span>
-        <button type="button" onClick={() => void importCsv()} disabled={importing} className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60">{importing ? <LoaderCircle size={16} className="animate-spin"/> : <FilePlus2 size={16}/>} بدء الاستيراد</button>
-      </div>}
+      {importRows.length > 0 && <>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3"><span className="text-sm font-bold text-slate-700">معاينة: {importRows.length} صف · عرض أول {Math.min(importRows.length, 5)} صفوف</span><button type="button" onClick={() => void importCsv()} disabled={importing} className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60">{importing ? <LoaderCircle size={16} className="animate-spin"/> : <FilePlus2 size={16}/>} بدء الاستيراد</button></div>
+        <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white"><table className="min-w-full text-right text-xs"><caption className="px-3 py-2 text-right font-bold text-slate-600">معاينة بيانات التحميل الفعلي قبل الإرسال</caption><thead className="bg-slate-100 text-slate-700"><tr>{['التاريخ', 'كود العربية', 'كود السائق', 'كود المصنع', 'كود المحجر', 'الوزن (طن)'].map(label => <th key={label} scope="col" className="whitespace-nowrap px-3 py-2 font-black">{label}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{importRows.slice(0, 5).map(row => <tr key={row.source_row_number} className="text-slate-800"><td className="whitespace-nowrap px-3 py-2">{row.load_date || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.vehicle_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.driver_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.factory_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.quarry_code || '—'}</td><td className="whitespace-nowrap px-3 py-2">{row.actual_weight || '—'}</td></tr>)}</tbody></table></div>
+      </>}
     </div>
-    {loadingDirectory ? <div className="flex items-center gap-2 py-6 text-sm text-slate-500"><LoaderCircle size={17} className="animate-spin"/> تحميل دليل السيارات والسائقين والمصانع والمحاجر...</div> : <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {!csvOnly && (loadingDirectory ? <div className="flex items-center gap-2 py-6 text-sm text-slate-500"><LoaderCircle size={17} className="animate-spin"/> تحميل دليل السيارات والسائقين والمصانع والمحاجر...</div> : <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <label className="space-y-1 text-sm font-bold text-slate-700">تاريخ التحميل<input required type="date" value={loadDate} onChange={e => setLoadDate(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"/></label>
       <label className="space-y-1 text-sm font-bold text-slate-700">العربية<select required value={vehicleId} onChange={e => setVehicleId(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"><option value="">اختر العربية</option>{options(directory.vehicles)}</select></label>
       <label className="space-y-1 text-sm font-bold text-slate-700">السائق<select required value={driverId} onChange={e => setDriverId(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"><option value="">اختر السائق</option>{options(directory.drivers)}</select></label>
@@ -246,6 +259,6 @@ export const PaperLoadingEntryScreen: React.FC = () => {
       <label className="space-y-1 text-sm font-bold text-slate-700">رقم تذكرة الميزان (اختياري)<input maxLength={120} value={ticketNumber} onChange={e => setTicketNumber(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"/></label>
       <label className="space-y-1 text-sm font-bold text-slate-700 sm:col-span-2">ملاحظات الدفتر (اختياري)<input maxLength={2000} value={notes} onChange={e => setNotes(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5"/></label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-3"><button type="submit" disabled={saving || loadingDirectory} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-700 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-amber-800 disabled:opacity-60">{saving ? <LoaderCircle size={17} className="animate-spin"/> : <FilePlus2 size={17}/>} تسجيل التحميل الورقي</button><span className="text-xs leading-5 text-slate-500">لا يتم تعديل أي سجل تسليم سابق، ويُخصص رقم تحميل يومي من قاعدة البيانات.</span></div>
-    </form>}
+    </form>)}
   </section>;
 };
