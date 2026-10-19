@@ -8,7 +8,6 @@ import { VehicleOwnerReportsScreen } from './VehicleOwnerReportsScreen';
 import { AccountStatementsScreen } from './AccountStatementsScreen';
 import { BranchEmployeeManagementScreen } from './BranchEmployeeManagementScreen';
 import { SystemAiAssistant } from './SystemAiAssistant';
-import { PaperLoadingEntryScreen } from './PaperLoadingEntryScreen';
 import { getLiveSnapshot, LiveSnapshot, liveName } from '../services/liveData';
 
 const statusLabel: Record<string, string> = {
@@ -27,23 +26,23 @@ const statusLabel: Record<string, string> = {
 
 type OfficeScreen = 'dashboard' | 'tracking' | 'directory' | 'factories' | 'quarries' | 'direct' | 'drivers' | 'vehicles' | 'waiting' | 'orders' | 'actual' | 'vehicleReports' | 'factoryStatement' | 'quarryStatement' | 'analytics' | 'employees' | 'assistant';
 const screenPalette: Record<OfficeScreen, { selected: string; wash: string; icon: string; iconBg: string }> = {
-  dashboard: { selected: 'bg-teal-700 hover:bg-teal-800', wash: 'bg-slate-50/70', icon: 'text-teal-700', iconBg: 'bg-teal-50' },
-  drivers: { selected: 'bg-violet-700 hover:bg-violet-800', wash: 'bg-slate-50/70', icon: 'text-violet-700', iconBg: 'bg-violet-50' },
-  vehicles: { selected: 'bg-blue-700 hover:bg-blue-800', wash: 'bg-slate-50/70', icon: 'text-blue-700', iconBg: 'bg-blue-50' },
-  waiting: { selected: 'bg-amber-600 hover:bg-amber-700', wash: 'bg-slate-50/70', icon: 'text-amber-700', iconBg: 'bg-amber-50' },
-  orders: { selected: 'bg-orange-600 hover:bg-orange-700', wash: 'bg-slate-50/70', icon: 'text-orange-700', iconBg: 'bg-orange-50' },
-  actual: { selected: 'bg-emerald-700 hover:bg-emerald-800', wash: 'bg-slate-50/70', icon: 'text-emerald-700', iconBg: 'bg-emerald-50' },
-  vehicleReports: { selected: 'bg-sky-700 hover:bg-sky-800', wash: 'bg-slate-50/70', icon: 'text-sky-700', iconBg: 'bg-sky-50' },
-  factoryStatement: { selected: 'bg-cyan-700 hover:bg-cyan-800', wash: 'bg-slate-50/70', icon: 'text-cyan-700', iconBg: 'bg-cyan-50' },
-  quarryStatement: { selected: 'bg-lime-700 hover:bg-lime-800', wash: 'bg-slate-50/70', icon: 'text-lime-800', iconBg: 'bg-lime-50' },
-  analytics: { selected: 'bg-indigo-700 hover:bg-indigo-800', wash: 'bg-slate-50/70', icon: 'text-indigo-700', iconBg: 'bg-indigo-50' },
-  tracking: { selected: 'bg-cyan-700 hover:bg-cyan-800', wash: 'bg-slate-50/70', icon: 'text-cyan-700', iconBg: 'bg-cyan-50' },
-  directory: { selected: 'bg-slate-700 hover:bg-slate-800', wash: 'bg-slate-50/70', icon: 'text-slate-700', iconBg: 'bg-slate-100' },
-  factories: { selected: 'bg-sky-600 hover:bg-sky-700', wash: 'bg-sky-50/50', icon: 'text-sky-700', iconBg: 'bg-sky-50' },
-  quarries: { selected: 'bg-amber-600 hover:bg-amber-700', wash: 'bg-amber-50/50', icon: 'text-amber-700', iconBg: 'bg-amber-50' },
-  direct: { selected: 'bg-fuchsia-700 hover:bg-fuchsia-800', wash: 'bg-slate-50/70', icon: 'text-fuchsia-700', iconBg: 'bg-fuchsia-50' },
-  employees: { selected: 'bg-purple-700 hover:bg-purple-800', wash: 'bg-slate-50/70', icon: 'text-purple-700', iconBg: 'bg-purple-50' },
-  assistant: { selected: 'bg-rose-700 hover:bg-rose-800', wash: 'bg-slate-50/70', icon: 'text-rose-700', iconBg: 'bg-rose-50' },
+  dashboard: { selected: 'bg-teal-100 hover:bg-teal-200', wash: 'bg-slate-50/70', icon: 'text-teal-700', iconBg: 'bg-teal-50' },
+  drivers: { selected: 'bg-violet-100 hover:bg-violet-200', wash: 'bg-slate-50/70', icon: 'text-violet-700', iconBg: 'bg-violet-50' },
+  vehicles: { selected: 'bg-blue-100 hover:bg-blue-200', wash: 'bg-slate-50/70', icon: 'text-blue-700', iconBg: 'bg-blue-50' },
+  waiting: { selected: 'bg-amber-100 hover:bg-amber-200', wash: 'bg-slate-50/70', icon: 'text-amber-700', iconBg: 'bg-amber-50' },
+  orders: { selected: 'bg-orange-100 hover:bg-orange-200', wash: 'bg-slate-50/70', icon: 'text-orange-700', iconBg: 'bg-orange-50' },
+  actual: { selected: 'bg-emerald-100 hover:bg-emerald-200', wash: 'bg-slate-50/70', icon: 'text-emerald-700', iconBg: 'bg-emerald-50' },
+  vehicleReports: { selected: 'bg-sky-100 hover:bg-sky-200', wash: 'bg-slate-50/70', icon: 'text-sky-700', iconBg: 'bg-sky-50' },
+  factoryStatement: { selected: 'bg-cyan-100 hover:bg-cyan-200', wash: 'bg-slate-50/70', icon: 'text-cyan-700', iconBg: 'bg-cyan-50' },
+  quarryStatement: { selected: 'bg-lime-100 hover:bg-lime-200', wash: 'bg-slate-50/70', icon: 'text-lime-800', iconBg: 'bg-lime-50' },
+  analytics: { selected: 'bg-indigo-100 hover:bg-indigo-200', wash: 'bg-slate-50/70', icon: 'text-indigo-700', iconBg: 'bg-indigo-50' },
+  tracking: { selected: 'bg-cyan-100 hover:bg-cyan-200', wash: 'bg-slate-50/70', icon: 'text-cyan-700', iconBg: 'bg-cyan-50' },
+  directory: { selected: 'bg-slate-100 hover:bg-slate-200', wash: 'bg-slate-50/70', icon: 'text-slate-700', iconBg: 'bg-slate-100' },
+  factories: { selected: 'bg-sky-100 hover:bg-sky-200', wash: 'bg-sky-50/50', icon: 'text-sky-700', iconBg: 'bg-sky-50' },
+  quarries: { selected: 'bg-amber-100 hover:bg-amber-200', wash: 'bg-amber-50/50', icon: 'text-amber-700', iconBg: 'bg-amber-50' },
+  direct: { selected: 'bg-fuchsia-100 hover:bg-fuchsia-200', wash: 'bg-slate-50/70', icon: 'text-fuchsia-700', iconBg: 'bg-fuchsia-50' },
+  employees: { selected: 'bg-purple-100 hover:bg-purple-200', wash: 'bg-slate-50/70', icon: 'text-purple-700', iconBg: 'bg-purple-50' },
+  assistant: { selected: 'bg-rose-100 hover:bg-rose-200', wash: 'bg-slate-50/70', icon: 'text-rose-700', iconBg: 'bg-rose-50' },
 };
 
 export const LiveOperationsBoard: React.FC = () => {
@@ -188,7 +187,7 @@ export const LiveOperationsBoard: React.FC = () => {
   }, [data]);
 
   if (loading && !data) {
-    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-teal-50 via-white to-orange-50 p-6 text-slate-800"><div className="rounded-3xl border border-teal-100 bg-white/90 px-8 py-9 text-center shadow-lg shadow-teal-900/5"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-teal-100 text-teal-700"><ClipboardList size={30}/></div><p className="text-xs font-black tracking-widest text-teal-700">TIBA SUPPLIES</p><p className="mt-2 text-lg font-black">جاري تجهيز مركز التشغيل</p><p className="mt-1 text-sm text-slate-500">بنحمّل بيانات التشغيل الحقيقية...</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-teal-100"><div className="h-full w-1/2 animate-pulse rounded-full bg-teal-600"/></div></div></div>;
+    return <div dir="rtl" className="grid min-h-screen place-items-center bg-gradient-to-br from-[#f3f7fb] via-white to-[#eaf5fc] p-6 text-[#10243a]"><div className="rounded-3xl border border-[#dce6ef] bg-white px-8 py-9 text-center shadow-lg shadow-black/20"><div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-[#dff7f3] text-[#075e75]"><ClipboardList size={30}/></div><p className="text-xs font-black tracking-widest text-[#075e75]">TIBA SUPPLIES</p><p className="mt-2 text-lg font-black">جاري تجهيز مركز التشغيل</p><p className="mt-1 text-sm text-slate-500">بنحمّل بيانات التشغيل الحقيقية...</p><div className="mx-auto mt-5 h-1.5 w-40 overflow-hidden rounded-full bg-[#dff7f3]"><div className="h-full w-1/2 animate-pulse rounded-full bg-[#0f9b8e]"/></div></div></div>;
   }
 
   const operationalOffice = data?.operational_office ?? data?.office;
@@ -196,13 +195,13 @@ export const LiveOperationsBoard: React.FC = () => {
   const checkInRadiusKm = Number(checkInOffice?.geofence_radius_m ?? 10000) / 1000;
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f3f6fa] text-slate-900 selection:bg-cyan-200">
-      <header className="relative sm:sticky sm:top-0 z-30 overflow-hidden border-b border-slate-800 bg-gradient-to-l from-[#071426] via-[#0c2340] to-[#102f4b] text-white shadow-xl shadow-slate-950/15">
+    <div dir="rtl" className="min-h-screen bg-[#f3f7fb] text-[#10243a] selection:bg-cyan-200">
+      <header className="relative sm:sticky sm:top-0 z-30 overflow-hidden border-b border-[#dce6ef] bg-gradient-to-l from-white via-[#eaf5fc] to-[#dff7f3] text-[#10243a] shadow-xl shadow-slate-950/15">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-6">
           <div className="min-w-0 w-full sm:w-auto">
-            <div className="inline-flex items-center gap-3 text-[11px] font-black tracking-[0.12em] text-cyan-100 sm:text-xs"><span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/15 bg-white/10 text-cyan-300 shadow-lg shadow-black/10"><Truck className="h-6 w-6" /></span><span><span className="block text-sm tracking-[0.16em] text-white">TIBA SUPPLIES</span><span className="mt-1 block text-[10px] tracking-[0.2em] text-cyan-300">SHADOW OPERATIONS · LIVE CORE</span></span></div>
-            <h1 className="mt-3 text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl">مركز تشغيل طيبة للتوريدات</h1>
-            <div className="mt-3 max-w-3xl text-xs leading-6 text-slate-300 break-words sm:text-sm">
+            <div className="inline-flex items-center gap-3 text-[11px] font-black tracking-[0.12em] text-teal-700 sm:text-xs"><span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/15 bg-[#dff7f3] text-[#075e75] shadow-sm"><Truck className="h-6 w-6" /></span><span><span className="block text-sm tracking-[0.16em] text-[#10243a]">TIBA SUPPLIES</span><span className="mt-1 block text-[10px] tracking-[0.2em] text-teal-700">SHADOW OPERATIONS · LIVE CORE</span></span></div>
+            <h1 className="mt-3 text-2xl font-black leading-tight tracking-tight text-[#10243a] sm:text-3xl">مركز تشغيل طيبة للتوريدات</h1>
+            <div className="mt-3 max-w-3xl text-xs leading-6 text-slate-600 break-words sm:text-sm">
               <MapPin className="inline h-3 w-3 ml-1" />
               مكتب التشغيل: {operationalOffice?.name ?? 'طيبة للتوريدات - الإسماعيلية'}
               {' · '}
@@ -212,10 +211,10 @@ export const LiveOperationsBoard: React.FC = () => {
             </div>
           </div>
           <div className="flex w-full shrink-0 gap-2 sm:w-auto sm:self-auto">
-            <button onClick={load} className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 sm:flex-none">
+            <button onClick={load} className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-[#cfe0eb] bg-white px-4 py-2.5 text-sm font-bold text-[#10243a] transition hover:bg-[#edf3f8] sm:flex-none">
               <RefreshCw className="inline h-4 w-4 ml-1" /> تحديث
             </button>
-            <button onClick={() => supabase.auth.signOut()} className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-rose-300/30 bg-rose-400/10 px-4 py-2.5 text-sm font-bold text-rose-100 transition hover:bg-rose-400/20 sm:flex-none">
+            <button onClick={() => supabase.auth.signOut()} className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-800 transition hover:bg-rose-100 sm:flex-none">
               <LogOut className="inline h-4 w-4 ml-1" /> خروج
             </button>
           </div>
@@ -223,13 +222,13 @@ export const LiveOperationsBoard: React.FC = () => {
       </header>
 
       <main className="mx-auto max-w-[1440px] space-y-4 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6">
-        {error && <div className="rounded-2xl border border-red-500/30 bg-red-50 p-4 text-sm text-red-800">خطأ: {error}</div>}
+        {error && <div className="rounded-2xl border border-red-400/30 bg-[#fff0f1] p-4 text-sm text-rose-800">خطأ: {error}</div>}
 
-        {successMessage && <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50 p-4 text-sm text-emerald-800">{successMessage}</div>}
+        {successMessage && <div className="rounded-2xl border border-emerald-400/30 bg-[#e9f8f0] p-4 text-sm text-emerald-800">{successMessage}</div>}
 
-        {activeScreen === 'dashboard' && (data?.office_notifications ?? []).length > 0 && <section aria-label="تنبيهات المكتب" className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm sm:p-5">
-          <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-700" size={21}/><h2 className="font-black text-slate-900">تنبيهات التشغيل والوزن الفعلي</h2></div>
-          <div className="space-y-2">{(data?.office_notifications ?? []).slice(0, 10).map((notice: Record<string, any>) => <article key={notice.id} className="rounded-xl border border-amber-100 bg-amber-50/60 p-3">
+        {activeScreen === 'dashboard' && (data?.office_notifications ?? []).length > 0 && <section aria-label="تنبيهات المكتب" className="rounded-2xl border border-amber-500/30 bg-white p-4 shadow-sm sm:p-5">
+          <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="text-amber-700" size={21}/><h2 className="font-black text-[#10243a]">تنبيهات التشغيل والوزن الفعلي</h2></div>
+          <div className="space-y-2">{(data?.office_notifications ?? []).slice(0, 10).map((notice: Record<string, any>) => <article key={notice.id} className="rounded-xl border border-amber-500/20 bg-[#fff4df] p-3">
             <div className="font-bold">{notice.title}</div>
             <p className="mt-1 text-sm leading-6 text-slate-700">{notice.body}</p>
             <div className="mt-1 text-xs text-slate-500">{notice.created_at ? new Date(notice.created_at).toLocaleString('ar-EG') : ''}</div>
@@ -237,10 +236,10 @@ export const LiveOperationsBoard: React.FC = () => {
         </section>}
 
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-          <aside className="w-full shrink-0 rounded-[26px] border border-slate-200 bg-white p-3 shadow-[0_14px_38px_rgba(15,40,60,0.07)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
-            <div className="mb-3 rounded-2xl border border-slate-100 bg-gradient-to-l from-[#e4f7fa] via-white to-[#edf3ff] px-4 py-4">
-              <div className="text-[10px] font-black tracking-[0.14em] text-teal-800">TIBA SUPPLIES</div>
-              <h2 className="mt-1 text-lg font-black text-slate-900">إدارة المكتب</h2>
+          <aside className="w-full shrink-0 rounded-[26px] border border-[#dce6ef] bg-white p-3 shadow-[0_14px_38px_rgba(15,40,60,0.07)] xl:sticky xl:top-28 xl:w-[290px] xl:p-4" aria-label="القائمة الرئيسية للمكتب">
+            <div className="mb-3 rounded-2xl border border-[#dce6ef] bg-gradient-to-l from-[#eaf5fc] via-white to-[#f3f7fb] px-4 py-4">
+              <div className="text-[10px] font-black tracking-[0.14em] text-teal-700">TIBA SUPPLIES</div>
+              <h2 className="mt-1 text-lg font-black text-[#10243a]">إدارة المكتب</h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">كل شاشات التشغيل في مكان واحد</p>
             </div>
             <nav className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:grid xl:grid-cols-1 xl:overflow-visible" aria-label="التنقل بين شاشات المكتب">
@@ -261,7 +260,7 @@ export const LiveOperationsBoard: React.FC = () => {
                 ['assistant', 'مساعد النظام AI', Bot],
               ] as const).map(([key, label, Icon]) => {
                 const selected = activeScreen === key;
-                return <button key={key} type="button" onClick={() => setActiveScreen(key as typeof activeScreen)} className={selected ? `flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-right text-xs font-black text-white shadow-md transition xl:w-full xl:text-sm ${screenPalette[key].selected}` : 'flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2 text-right text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 xl:w-full xl:text-sm'}>
+                return <button key={key} type="button" onClick={() => setActiveScreen(key as typeof activeScreen)} className={selected ? `flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-right text-xs font-black text-[#10243a] shadow-md transition xl:w-full xl:text-sm ${screenPalette[key].selected}` : 'flex min-h-[46px] shrink-0 items-center gap-2 rounded-xl border border-[#dce6ef] bg-white px-3 py-2 text-right text-xs font-semibold text-slate-300 transition hover:border-[#80cfc5] hover:bg-[#edf3f8] hover:text-[#10243a] xl:w-full xl:text-sm'}>
                   <span className={selected ? "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/15" : `grid h-8 w-8 shrink-0 place-items-center rounded-lg ${screenPalette[key].iconBg} ${screenPalette[key].icon}`}><Icon className="h-4 w-4 shrink-0" /></span>
                   <span className="min-w-0 flex-1 leading-5">{label}</span>
                   {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -269,10 +268,10 @@ export const LiveOperationsBoard: React.FC = () => {
               })}
             </nav>
           </aside>
-          <section className={`min-w-0 flex-1 space-y-4 rounded-[1.75rem] border border-white/80 p-2 shadow-sm transition-colors sm:space-y-5 sm:p-4 ${screenPalette[activeScreen].wash}`}>
+          <section className={`min-w-0 flex-1 space-y-4 rounded-[1.75rem] border border-[#dce6ef] bg-white p-2 shadow-[0_14px_38px_rgba(0,0,0,0.18)] transition-colors sm:space-y-5 sm:p-4 ${screenPalette[activeScreen].wash}`}>
         {activeScreen === 'analytics' ? <section className="space-y-5">
-          <div className="rounded-3xl border border-indigo-100 bg-gradient-to-l from-indigo-950 via-blue-950 to-slate-900 p-5 text-white shadow-lg sm:p-6">
-            <p className="text-xs font-black tracking-widest text-cyan-300">PERFORMANCE ANALYTICS</p>
+          <div className="rounded-3xl border border-indigo-100 bg-gradient-to-l from-indigo-50 via-white to-sky-50 p-5 text-[#10243a] shadow-lg sm:p-6">
+            <p className="text-xs font-black tracking-widest text-teal-700">PERFORMANCE ANALYTICS</p>
             <h2 className="mt-2 text-2xl font-black sm:text-3xl">تحليل أداء التشغيل</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">ملخص مؤشرات الأداء من السجلات الحقيقية المتاحة: الطلبات، التخصيصات، التحميل الفعلي، والسائقون. كشوف الحسابات موجودة في أقسام منفصلة.</p>
           </div>
@@ -296,20 +295,20 @@ export const LiveOperationsBoard: React.FC = () => {
             </div><div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4"><button type="button" onClick={()=>setActiveScreen('vehicleReports')} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-black text-white">تحليل أداء العربيات والملاك</button><button type="button" onClick={()=>setActiveScreen('actual')} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold">مراجعة التحميل الفعلي</button></div></section>
           </div>
           <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">ملاحظة: المؤشرات هنا وصفية وتعتمد على السجلات المتاحة حاليًا. لا نحسب زمن الدورة أو الالتزام بالمواعيد قبل التأكد من اكتمال طوابع الوقت المطلوبة.</p>
-        </section> : activeScreen === 'assistant' ? <SystemAiAssistant audience="HEAD_OFFICE" context={{ office: data?.operational_office?.name ?? data?.office?.name ?? 'مكتب الإسماعيلية', check_in_office: data?.check_in_office?.name ?? 'مكتب رأس سدر', totals: { factories: data?.factories.length ?? 0, quarries: data?.quarries.length ?? 0, load_orders: data?.load_orders.length ?? 0, bookings: data?.bookings.length ?? 0, actual_loading_records: data?.actual_loading_records.length ?? 0, active_drivers: data?.drivers.filter(row => row.is_active !== false).length ?? 0, active_vehicles: data?.vehicles.filter(row => row.is_active !== false).length ?? 0 }, load_orders: (data?.load_orders ?? []).slice(0, 80).map(order => ({ factory: liveName(data?.factories.find(row => row.factory_id === order.factory_id)), quarry: liveName(data?.quarries.find(row => row.quarry_id === order.quarry_id)), status: order.status, requested_quantity: order.requested_quantity, priority: order.priority })), bookings_by_status: Object.entries((data?.bookings ?? []).reduce((acc: Record<string, number>, row) => { acc[row.status] = (acc[row.status] ?? 0) + 1; return acc; }, {})), actual_loads_today: todaysActualCount }} /> : activeScreen === 'employees' ? <BranchEmployeeManagementScreen /> : activeScreen === 'factoryStatement' ? <AccountStatementsScreen kind="factory" /> : activeScreen === 'quarryStatement' ? <AccountStatementsScreen kind="quarry" /> : activeScreen === 'vehicleReports' ? <VehicleOwnerReportsScreen /> : activeScreen === 'tracking' ? <VehicleTrackingScreen /> : activeScreen === 'drivers' ? <OfficeDirectoryScreen initialSection="drivers" showSectionTabs={false} /> : activeScreen === 'vehicles' ? <OfficeDirectoryScreen initialSection="vehicles" showSectionTabs={false} /> : activeScreen === 'waiting' ? <OfficeDirectoryScreen initialSection="waiting" showSectionTabs={false} /> : activeScreen === 'orders' ? <OfficeDirectoryScreen initialSection="loads" showSectionTabs={false} /> : activeScreen === 'actual' ? <><PaperLoadingEntryScreen /><OfficeDirectoryScreen initialSection="actual" showSectionTabs={false} /></> : activeScreen === 'factories' ? <OfficeDirectoryScreen initialSection="factories" showSectionTabs={false} /> : activeScreen === 'quarries' ? <OfficeDirectoryScreen initialSection="quarries" showSectionTabs={false} /> : activeScreen === 'directory' ? <OfficeDirectoryScreen /> : activeScreen === 'direct' ? <DirectLoadAssignmentScreen /> : <>
-        <section className="relative isolate overflow-hidden rounded-[28px] border border-[#163552] bg-gradient-to-br from-[#061426] via-[#0b2a49] to-[#11536a] p-5 text-white shadow-[0_20px_50px_rgba(8,35,60,0.22)] sm:rounded-[32px] sm:p-7"><div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl"/><div aria-hidden="true" className="pointer-events-none absolute -bottom-24 right-1/3 h-56 w-56 rounded-full bg-blue-400/10 blur-3xl"/>
+        </section> : activeScreen === 'assistant' ? <SystemAiAssistant audience="HEAD_OFFICE" context={{ office: data?.operational_office?.name ?? data?.office?.name ?? 'مكتب الإسماعيلية', check_in_office: data?.check_in_office?.name ?? 'مكتب رأس سدر', totals: { factories: data?.factories.length ?? 0, quarries: data?.quarries.length ?? 0, load_orders: data?.load_orders.length ?? 0, bookings: data?.bookings.length ?? 0, actual_loading_records: data?.actual_loading_records.length ?? 0, active_drivers: data?.drivers.filter(row => row.is_active !== false).length ?? 0, active_vehicles: data?.vehicles.filter(row => row.is_active !== false).length ?? 0 }, load_orders: (data?.load_orders ?? []).slice(0, 80).map(order => ({ factory: liveName(data?.factories.find(row => row.factory_id === order.factory_id)), quarry: liveName(data?.quarries.find(row => row.quarry_id === order.quarry_id)), status: order.status, requested_quantity: order.requested_quantity, priority: order.priority })), bookings_by_status: Object.entries((data?.bookings ?? []).reduce((acc: Record<string, number>, row) => { acc[row.status] = (acc[row.status] ?? 0) + 1; return acc; }, {})), actual_loads_today: todaysActualCount }} /> : activeScreen === 'employees' ? <BranchEmployeeManagementScreen /> : activeScreen === 'factoryStatement' ? <AccountStatementsScreen kind="factory" /> : activeScreen === 'quarryStatement' ? <AccountStatementsScreen kind="quarry" /> : activeScreen === 'vehicleReports' ? <VehicleOwnerReportsScreen /> : activeScreen === 'tracking' ? <VehicleTrackingScreen /> : activeScreen === 'drivers' ? <OfficeDirectoryScreen initialSection="drivers" showSectionTabs={false} /> : activeScreen === 'vehicles' ? <OfficeDirectoryScreen initialSection="vehicles" showSectionTabs={false} /> : activeScreen === 'waiting' ? <OfficeDirectoryScreen initialSection="waiting" showSectionTabs={false} /> : activeScreen === 'orders' ? <OfficeDirectoryScreen initialSection="loads" showSectionTabs={false} /> : activeScreen === 'actual' ? <OfficeDirectoryScreen initialSection="actual" showSectionTabs={false} /> : activeScreen === 'factories' ? <OfficeDirectoryScreen initialSection="factories" showSectionTabs={false} /> : activeScreen === 'quarries' ? <OfficeDirectoryScreen initialSection="quarries" showSectionTabs={false} /> : activeScreen === 'directory' ? <OfficeDirectoryScreen /> : activeScreen === 'direct' ? <DirectLoadAssignmentScreen /> : <>
+        <section className="relative isolate overflow-hidden rounded-[28px] border border-[#dce6ef] bg-gradient-to-br from-[#f3f7fb] via-[#eaf5fc] to-[#dff7f3] p-5 text-[#10243a] shadow-[0_20px_50px_rgba(8,35,60,0.22)] sm:rounded-[32px] sm:p-7"><div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl"/><div aria-hidden="true" className="pointer-events-none absolute -bottom-24 right-1/3 h-56 w-56 rounded-full bg-blue-400/10 blur-3xl"/>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-100"><span className="h-2 w-2 rounded-full bg-emerald-400" /> بيانات التشغيل الحقيقية</div>
-              <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">لوحة تشغيل <span className="text-cyan-300">Tiba-Supplies</span></h2>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-slate-300">متابعة أوامر التحميل والسائقين والمصانع والمحاجر من مكان واحد، مع الانتقال إلى شاشة مستقلة لكل قسم.</p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-200"><span className="rounded-lg bg-white/10 px-3 py-2">مكتب التشغيل: {operationalOffice?.name ?? 'طيبة للتوريدات'}</span><span className="rounded-lg bg-white/10 px-3 py-2">مكتب الوصول: {checkInOffice?.name ?? 'رأس سدر'}</span></div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-800"><span className="h-2 w-2 rounded-full bg-emerald-400" /> بيانات التشغيل الحقيقية</div>
+              <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">لوحة تشغيل <span className="text-teal-700">Tiba-Supplies</span></h2>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-slate-600">متابعة أوامر التحميل والسائقين والمصانع والمحاجر من مكان واحد، مع الانتقال إلى شاشة مستقلة لكل قسم.</p>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-700"><span className="rounded-lg bg-white px-3 py-2">مكتب التشغيل: {operationalOffice?.name ?? 'طيبة للتوريدات'}</span><span className="rounded-lg bg-white px-3 py-2">مكتب الوصول: {checkInOffice?.name ?? 'رأس سدر'}</span></div>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:min-w-64">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.08] p-4 shadow-lg shadow-black/5 backdrop-blur-sm"><ClipboardList className="h-5 w-5 text-cyan-300"/><div className="mt-2 text-2xl font-black">{counts.orders}</div><div className="text-xs text-slate-300">أوامر التحميل</div></div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4"><Truck className="h-5 w-5 text-emerald-300"/><div className="mt-2 text-2xl font-black">{counts.activeBookings}</div><div className="text-xs text-slate-300">تخصيصات نشطة</div></div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4"><Factory className="h-5 w-5 text-sky-300"/><div className="mt-2 text-2xl font-black">{data?.factories.length ?? 0}</div><div className="text-xs text-slate-300">المصانع والعملاء</div></div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4"><Mountain className="h-5 w-5 text-amber-300"/><div className="mt-2 text-2xl font-black">{data?.quarries.length ?? 0}</div><div className="text-xs text-slate-300">المحاجر والموردون</div></div>
+              <div className="rounded-2xl border border-white/10 bg-white p-4 shadow-sm"><ClipboardList className="h-5 w-5 text-teal-700"/><div className="mt-2 text-2xl font-black">{counts.orders}</div><div className="text-xs text-slate-600">أوامر التحميل</div></div>
+              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Truck className="h-5 w-5 text-emerald-700"/><div className="mt-2 text-2xl font-black">{counts.activeBookings}</div><div className="text-xs text-slate-600">تخصيصات نشطة</div></div>
+              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Factory className="h-5 w-5 text-sky-700"/><div className="mt-2 text-2xl font-black">{data?.factories.length ?? 0}</div><div className="text-xs text-slate-600">المصانع والعملاء</div></div>
+              <div className="rounded-2xl border border-[#dce6ef] bg-white p-4"><Mountain className="h-5 w-5 text-amber-300"/><div className="mt-2 text-2xl font-black">{data?.quarries.length ?? 0}</div><div className="text-xs text-slate-600">المحاجر والموردون</div></div>
             </div>
           </div>
         </section>
@@ -446,8 +445,8 @@ export const LiveOperationsBoard: React.FC = () => {
                 <div className="rounded-2xl bg-emerald-50 p-4"><Truck className="h-5 w-5 text-emerald-700" /><b className="block mt-2 text-xl">{todaysActualCount}</b><span className="text-xs text-slate-500">تحميلات اليوم</span></div>
               </div>
             </div>
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-              <div className="text-sm font-black text-emerald-700">قاعدة التشغيل الأساسية</div>
+            <div className="rounded-3xl border border-emerald-500/25 bg-[#e9f8f0] p-5">
+              <div className="text-sm font-black text-emerald-800">قاعدة التشغيل الأساسية</div>
               <div className="mt-2 text-sm text-slate-300">
                 أوامر التحميل تصدر من مكتب الإسماعيلية، وتسجيل وصول السواقين يتم في مكتب رأس سدر. وجود السواق داخل نطاق {checkInRadiusKm} كم وحده لا يضيفه لقائمة الانتظار؛ لازم يسجل وصوله صراحةً.
               </div>

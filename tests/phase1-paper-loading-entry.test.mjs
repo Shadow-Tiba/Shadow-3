@@ -3,10 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, importMigration, screen, board, directoryScreen] = await Promise.all([
+const [migration, importMigration, board, directoryScreen] = await Promise.all([
   read("../supabase/migrations/20261017111000_phase1_paper_actual_load_entry.sql"),
   read("../supabase/migrations/20261017110000_phase1_paper_load_import_rpc.sql"),
-  read("../src/components/PaperLoadingEntryScreen.tsx"),
   read("../src/components/LiveOperationsBoard.tsx"),
   read("../src/components/OfficeDirectoryScreen.tsx"),
 ]);
@@ -20,13 +19,10 @@ test("paper loading entry is Main Office-authorized and writes a paper provenanc
   assert.match(migration, /grant execute on function public\.main_office_record_paper_actual_load.*to authenticated/i);
 });
 
-test("paper loading form validates weight and uses the scoped server RPC", () => {
-  assert.match(screen, /main_office_record_paper_actual_load/);
-  assert.match(screen, /weight <= 0 \|\| weight > 1000/);
-  assert.match(screen, /p_source_file_name: null/);
-  assert.match(screen, /p_source_row_number: null/);
-  assert.match(board, /PaperLoadingEntryScreen/);
+test("paper-loading entry UI is removed from the office workflow", () => {
+  assert.doesNotMatch(board, /PaperLoadingEntryScreen/);
   assert.match(board, /activeScreen === 'actual'/);
+  assert.doesNotMatch(directoryScreen, /main_office_record_paper_actual_load|main_office_import_paper_loads/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
@@ -47,8 +43,6 @@ test("CSV import validates source rows and has an idempotent Main Office RPC", (
   assert.match(importMigration, /v_existing\.actual_weight is distinct from round\(v_weight,3\)/);
   assert.match(importMigration, /record_source,source_record_id,source_file_name,source_row_number,imported_at/);
   assert.match(importMigration, /grant execute on function public\.main_office_import_paper_loads\(text,jsonb\) to authenticated/i);
-  assert.match(screen, /main_office_import_paper_loads/);
-  assert.match(screen, /source_row_number: index \+ 2/);
   assert.match(directoryScreen, /get_vehicle_owner_reports/);
   assert.match(directoryScreen, /actual_loading_records: Array\.isArray\(reportsResult\.data\?\.trips\)/);
 });
