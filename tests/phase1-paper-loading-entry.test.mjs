@@ -35,6 +35,10 @@ test("paper loading form validates weight and uses the scoped server RPC", () =>
   assert.match(screen, /duplicateSourceIds/);
   assert.match(screen, /معاينة بيانات التحميل الفعلي قبل الإرسال/);
   assert.match(screen, /importRows\.slice\(0, 5\)/);
+  assert.match(screen, /onImported\?: \(\) => void \| Promise<void>/);
+  assert.match(screen, /await onImported\?\.\(\)/);
+  assert.match(board, /onImported=\{refreshAfterPaperImport\}/);
+  assert.match(board, /key=\{actualLoadRefreshKey\}/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
