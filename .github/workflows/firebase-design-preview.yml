@@ -2,6 +2,17 @@ name: Firebase design preview
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ui/dark-premium-final
+    paths:
+      - 'src/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'firebase.json'
+      - '.firebaserc'
+      - '.github/workflows/firebase-design-preview.yml'
 
 permissions:
   contents: read
@@ -13,7 +24,7 @@ jobs:
       - name: Checkout UI redesign branch
         uses: actions/checkout@v4
         with:
-          ref: ui/redesign-safe
+          ref: ${{ github.ref_name }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
