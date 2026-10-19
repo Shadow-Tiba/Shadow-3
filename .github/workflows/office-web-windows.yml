@@ -82,6 +82,21 @@ jobs:
         run: npm run lint
       - name: Build office web bundle
         run: npm run build
+      - name: Verify Windows app bundle targets Tiba Shadow
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const expectedUrl = process.env.VITE_SUPABASE_URL;
+          const expectedKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          const files = fs.readdirSync('dist/assets').filter(f => f.endsWith('.js'));
+          if (!files.length) throw new Error('No JavaScript bundle found.');
+          const bundle = files.map(f => fs.readFileSync(path.join('dist/assets', f), 'utf8')).join('\\n');
+          if (!bundle.includes(expectedUrl)) throw new Error('Tiba Shadow Supabase URL missing from Windows bundle.');
+          if (!bundle.includes(expectedKey)) throw new Error('Configured Supabase publishable key missing from Windows bundle.');
+          console.log('Verified Windows bundle target; publishable key value not logged.');
+          NODE
       - name: Install Windows packaging tools
         run: npm install --no-save electron@^35.0.0 electron-builder@^26.0.0
       - name: Package Windows portable EXE
