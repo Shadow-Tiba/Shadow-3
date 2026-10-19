@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - shadow/phase1-hardening
+      - ui/dark-premium-final
     paths:
       - 'src/**'
       - 'index.html'
@@ -70,7 +71,7 @@ jobs:
       - name: Checkout Shadow branch
         uses: actions/checkout@v4
         with:
-          ref: shadow/phase1-hardening
+          ref: ${{ github.ref_name }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
