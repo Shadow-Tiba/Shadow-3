@@ -179,8 +179,8 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 - UI: Dark Premium CSS across Main Office, Ras Sedr Branch, and Driver, with RTL/responsive/focus/print/reduced-motion handling.
 - Main Office actual-loading screen exposes the CSV import panel in CSV-only mode and hides the manual-entry form in that workflow. CSV preflight rejects duplicate headers, malformed row widths, and duplicate source IDs; strips UTF-8 BOM, handles CR/LF/CRLF, shows a five-row preview, and refreshes the actual-loading list after successful import. Server RPC still validates the full batch before saving; no partial import is performed for a rejected batch.
 - Temporary visual preview (7-day channel): https://mido-supplies--design-preview-iqeyloro.web.app (deployed successfully by https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131464).
-- Latest completed Phase 1 Shadow CI: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444679 — success.
-- Latest completed Phase 1 build: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444685 — success.
+- Phase 1 Shadow CI validation of the app/test changes: success — https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444679.
+- Phase 1 build validation of the app/test changes: success — https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444685.
 
 ### Verified v1.0.45 build artifacts
 
