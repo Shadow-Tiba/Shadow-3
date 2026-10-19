@@ -172,3 +172,17 @@ Do not use older Windows artifacts built before `.github/workflows/windows-offic
 - Run `npm run lint` and `npm run build`; inspect the corresponding GitHub Actions result before distributing a final APK.
 - If the tracking issue recurs, record the exact UI error and inspect matching PostgREST/Edge logs before changing RPC names again.
 - Keep work on `shadow/phase1-hardening`; do not merge to `main` or write to Production without explicit approval.
+
+## Dark Premium candidate — 2026-10-19
+
+- Candidate branch: `ui/dark-premium-final`; draft PR #4 targets `shadow/phase1-hardening`. Do not merge without explicit release approval.
+- UI change is CSS-only in `src/index.css`: dark surfaces, RTL layout, focus-visible styles, responsive breakpoints, print behavior, and reduced-motion handling.
+- Temporary visual preview (expires after 7 days): https://mido-supplies--design-preview-iqeyloro.web.app
+- Latest completed Phase 1 Shadow CI: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39258529018 — success.
+- Latest completed Phase 1 build: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39258529108 — success.
+- Android release workflow now verifies the APK cryptographic signature with `apksigner` and prints SHA-256 before upload. Office and Ras Sedr Branch signed APK artifacts have passed that verification in run https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39258550925; Driver and Windows jobs were still running at the time this note was prepared.
+- The Windows build workflow verifies the embedded Tiba Shadow Supabase URL and configured publishable key before packaging. Current candidate Windows build: https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39258519279.
+- Read-only geofence code review: `driver_get_portal_snapshot()` only returns available loads when the driver's latest captured location is fresh (within 10 minutes and no more than 1 minute in the future) and within the active `RAS_SEDR` office's configured 10,000 m radius. Ras Sedr coordinates are configured; the MAIN office intentionally has no geofence coordinates. End-to-end load visibility still needs authenticated device acceptance with test load data.
+- Current Shadow security advisor findings: 21 public tables have RLS enabled with no direct table policies; direct client table grants are revoked and the app is designed around scoped SECURITY DEFINER RPCs. 48 SECURITY DEFINER functions are executable by authenticated users, but none by anon; review of returned definitions showed explicit main-office/branch guards or driver identity checks for the reviewed client-executable functions. This is a review finding, not a substitute for role-based acceptance tests.
+- Remaining blockers: enable leaked-password protection in Supabase Auth settings; review 38 unindexed foreign keys and 5 unused-index notices against query workload; reconcile original directory/paper-loading sources before importing; run authenticated MAIN/BRANCH/DRIVER acceptance tests; install the APKs on real devices and verify update/data preservation, background location, arrival, actual weight, scale-ticket upload, delivery confirmation, and reports.
+- No Production data writes, Production migration, or merge to `main` were performed.
