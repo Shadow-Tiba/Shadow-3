@@ -42,13 +42,17 @@ DO $checks$
 DECLARE
   v_cancel text;
   v_redirect text;
+  v_authorizer text;
 BEGIN
   SELECT pg_get_functiondef(to_regprocedure(
-    'public.office_cancel_booking(uuid,text,boolean)'
+    'public.main_office_cancel_booking(uuid,text)'
   )) INTO v_cancel;
   SELECT pg_get_functiondef(to_regprocedure(
-    'public.office_redirect_booking(uuid,uuid,text)'
+    'public.main_office_redirect_booking(uuid,uuid,text)'
   )) INTO v_redirect;
+  SELECT pg_get_functiondef(to_regprocedure(
+    'public.current_main_office_user()'
+  )) INTO v_authorizer;
 
   IF v_cancel IS NULL THEN
     RAISE EXCEPTION 'EXPECTED_OFFICE_CANCEL_RPC_MISSING';
@@ -57,13 +61,15 @@ BEGIN
     RAISE EXCEPTION 'EXPECTED_OFFICE_REDIRECT_RPC_MISSING';
   END IF;
 
-  IF position('INSUFFICIENT_ROLE' IN upper(v_cancel)) = 0
-     OR position('INSUFFICIENT_ROLE' IN upper(v_redirect)) = 0 THEN
+  IF v_authorizer IS NULL
+     OR position('CURRENT_MAIN_OFFICE_USER()' IN upper(v_cancel)) = 0
+     OR position('CURRENT_MAIN_OFFICE_USER()' IN upper(v_redirect)) = 0 THEN
     RAISE EXCEPTION 'OFFICE_MUTATION_ROLE_GATE_MISSING';
   END IF;
 
-  IF position('R.NAME IN (''ADMIN'', ''HEAD_OFFICE'')' IN upper(v_cancel)) = 0
-     OR position('R.NAME IN (''ADMIN'', ''HEAD_OFFICE'')' IN upper(v_redirect)) = 0 THEN
+  IF position('MAIN_OFFICE_ACCESS_REQUIRED' IN upper(v_authorizer)) = 0
+     OR position('AU.ROLE IN (''ADMIN'',''HEAD_OFFICE'')' IN upper(v_authorizer)) = 0
+     OR position('O.OFFICE_CODE=''MAIN''' IN upper(v_authorizer)) = 0 THEN
     RAISE EXCEPTION 'OFFICE_MUTATIONS_MUST_REMAIN_HEAD_OWNED';
   END IF;
 END
