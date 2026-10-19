@@ -217,3 +217,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -d tiba_chain_test -v ON_ERROR_STOP=1 -f supabase/tests/phase1_v191_contract_gate.sql
+      - name: Run loaded-trip cancellation regression gate
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d tiba_chain_test -v ON_ERROR_STOP=1 -f supabase/tests/phase1_loaded_trip_cancellation_checks.sql
