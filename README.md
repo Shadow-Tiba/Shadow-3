@@ -169,3 +169,50 @@ After the draft UI change is approved, build the Main Office, Ras Sedr Branch, a
 - Run `npm run lint` and `npm run build`; inspect the corresponding GitHub Actions result before distributing a final APK.
 - If the tracking issue recurs, record the exact UI error and inspect matching PostgREST/Edge logs before changing RPC names again.
 - Keep work on `shadow/phase1-hardening`; do not merge to `main` or write to Production without explicit approval.
+
+## Dark Premium + CSV paper-load candidate — 2026-10-19
+
+- Candidate branch: `ui/dark-premium-final`; draft PR #4 targets `shadow/phase1-hardening`. Do not merge without explicit release approval.
+- UI: Dark Premium CSS across Main Office, Ras Sedr Branch, and Driver, with RTL/responsive/focus/print/reduced-motion handling.
+- Main Office actual-loading screen exposes the CSV import panel in CSV-only mode and hides the manual-entry form in that workflow. CSV preflight rejects duplicate headers, malformed row widths, and duplicate source IDs; strips UTF-8 BOM, handles CR/LF/CRLF, shows a five-row preview, and refreshes the actual-loading list after successful import. Server RPC still validates the full batch before saving; no partial import is performed for a rejected batch.
+- Temporary visual preview (7-day channel): https://mido-supplies--design-preview-iqeyloro.web.app (deployed successfully by https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131464).
+- Phase 1 Shadow CI validation of the app/test changes: success — https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444679.
+- Phase 1 build validation of the app/test changes: success — https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261444685.
+
+### Verified v1.0.45 build artifacts
+
+- Android version `1.0.45`, versionCode `45`. The build verified the Tiba Shadow Supabase URL/publishable key in the bundle and verified each APK signature with `apksigner`; all three artifacts completed successfully in https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602.
+  - [Main Office APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602/artifacts/12191946434)
+  - [Ras Sedr Branch APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602/artifacts/12190826660)
+  - [Driver APK](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131602/artifacts/12190172923)
+  - All three use the same release certificate fingerprint: `c8f913a6110f76416e4f997cda6d3dc8c0f0d5ed4af9528512995c12e0e79061`.
+- Windows Office `Tiba-Supplies-Office-1.0.45-Windows.exe` passed the embedded endpoint check and packaging in https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131456.
+  - [Windows portable EXE](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131456/artifacts/12191931543)
+  - [Office web build](https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39261131456/artifacts/12191621262)
+- These are candidate test artifacts, not production-approved releases.
+
+### Data reconciliation — do not import yet
+
+- Historical loading workbook and staging CSV each contain 417 rows and match field-for-field. Five rows contain only a date and no vehicle/driver/quarry/factory; one additional row is missing the driver name; 314 rows have blank ticket numbers.
+- The historical file has no actual-weight field and uses source vehicle codes/names instead of the import RPC's required current directory codes. It must not be imported as actual-delivery evidence. It needs mapping to current directory codes and a verified actual-weight source before import.
+- Master-data workbook lists 138 vehicles and 107 owners; live Shadow lists 139 vehicles and 108 owners. Reconcile exact plate/owner identities before directory import.
+- The master workbook has 124 proposed factory names and 22 proposed quarry names flagged for deduplication/spelling review; live Shadow directories contain 23 factories and 12 quarries. Reconcile source names and codes before importing or modifying directory rows.
+
+### Security and release gates
+
+- Read-only review found RLS enabled on all 21 public tables and direct client table grants revoked. The app's current access pattern uses scoped SECURITY DEFINER RPCs; 48 such functions are executable by authenticated users and none by anon. Function-by-function authorization review and role-based acceptance remain required.
+- Supabase Security Advisor reports leaked-password protection disabled. Enable it in Supabase Auth settings.
+- Review 38 unindexed foreign-key notices and 5 unused-index notices against actual query plans/workload; do not blindly add/drop indexes.
+- Still required: physical-device install/update without data loss; authenticated MAIN/BRANCH/DRIVER acceptance; background GPS/geofence, dispatch visibility, actual weight, scale-ticket upload, delivery confirmation, and reporting smoke tests; authenticated AI-assistant end-to-end test.
+- No Production data writes, Production migration, or merge to `main` were performed.
+
+## Source data reconciliation — 2026-10-19
+
+- Historical loading source `بيانات_التحميل_بكود_العربيات.xlsx`, sheet `بيانات التحميل`: 417 rows, source indices 0–416.
+- `Tiba_Supplies_Historical_Loading_Staging_Import.csv`: 417 rows. Compared date, source plate, driver, quarry, factory, ticket number, and source row mapping against the source workbook: **0 field mismatches, 0 missing source rows, 0 un-staged source rows**.
+- Source quality: 314/417 rows have blank ticket numbers; 5 rows (source indices 412–416) contain only the date and no vehicle, vehicle code, driver, quarry, factory, or ticket. Staging `quality_note` is blank for all 417 rows. Do not import these as actual loading/delivery evidence or actual weights; annotate/review quality before any future historical staging import.
+- Fleet/owner source import contains 138 unique plate combinations and 107 unique owner names. Live Shadow contains all 138 source plates with matching owner names, plus one additional active record: plate `9999 / 9999`, owner `روميو`, owner code `OW-000001`, vehicle code `VH-000003`, office `RAS_SEDR`, created 2026-10-17. No active booking was found for it. This looks like a test/seed record but its purpose is not proven; **do not delete or modify it without owner confirmation**.
+- Source fleet has no duplicate plate combinations; live Shadow has no duplicate plate combinations. The 107 source owner names are all present in live Shadow; the additional owner is `روميو`.
+- Historical driver names do not prove current driver-to-vehicle assignments. Do not infer live assignments from the historical workbook.
+- Firebase design preview previously rendered a missing-configuration message because its build did not receive Vite Supabase environment values. Workflow `.github/workflows/firebase-design-preview.yml` now sets the Tiba Shadow URL/publishable key and verifies the built bundle before deployment. Redeployment succeeded at https://github.com/Shadow-Tiba/Shadow-3/actions/runs/39262669960. The browser tab already open in this session still displays the previously loaded page; refresh the preview URL to verify the newly deployed client UI.
+- No operational records were inserted or deleted as part of this reconciliation. Production remains untouched.

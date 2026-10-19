@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - shadow/phase1-hardening
+      - ui/dark-premium-final
     paths:
       - 'src/**'
       - 'native/android/**'
@@ -40,8 +41,8 @@ jobs:
       TIBA_APP_MODE: ${{ matrix.app_mode }}
       VITE_SUPABASE_URL: https://bvyxiahpxogblkmtjxyx.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_xiPfODQDOUSsTbgRQH9z6Q_izM6SFKn
-      ANDROID_VERSION_CODE: 44
-      ANDROID_VERSION_NAME: 1.0.44
+      ANDROID_VERSION_CODE: 45
+      ANDROID_VERSION_NAME: 1.0.45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -96,6 +97,22 @@ jobs:
 
       - name: Build web app
         run: npm run build
+
+      - name: Verify built bundle targets Tiba Shadow
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const expectedUrl = process.env.VITE_SUPABASE_URL;
+          const expectedKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          const files = fs.readdirSync('dist/assets').filter(f => f.endsWith('.js'));
+          if (!files.length) throw new Error('No JavaScript bundle found.');
+          const bundle = files.map(f => fs.readFileSync(path.join('dist/assets', f), 'utf8')).join('\\n');
+          if (!bundle.includes(expectedUrl)) throw new Error('Tiba Shadow Supabase URL missing from Android bundle.');
+          if (!bundle.includes(expectedKey)) throw new Error('Configured Supabase publishable key missing from Android bundle.');
+          console.log('Verified Android bundle target; publishable key value not logged.');
+          NODE
 
       - name: Generate Capacitor config
         shell: bash
@@ -285,7 +302,14 @@ jobs:
         run: |
           APK="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK" || { echo "::error::Signed release APK was not produced."; exit 1; }
-          echo "Release APK generated for $TIBA_APP_MODE."
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "$APKSIGNER" ]; then
+            echo "::error::Android apksigner tool was not found; refusing to mark the APK verified."
+            exit 1
+          fi
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          sha256sum "$APK"
+          echo "Signed APK cryptographic verification passed for $TIBA_APP_MODE."
 
       - name: Upload signed release APK
         uses: actions/upload-artifact@v4

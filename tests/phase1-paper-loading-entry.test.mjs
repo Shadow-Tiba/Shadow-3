@@ -20,13 +20,25 @@ test("paper loading entry is Main Office-authorized and writes a paper provenanc
   assert.match(migration, /grant execute on function public\.main_office_record_paper_actual_load.*to authenticated/i);
 });
 
-test("paper loading form validates weight and uses the scoped server RPC", () => {
+test("Main Office actual-loading screen exposes CSV import and hides manual entry in CSV-only mode", () => {
   assert.match(screen, /main_office_record_paper_actual_load/);
   assert.match(screen, /weight <= 0 \|\| weight > 1000/);
   assert.match(screen, /p_source_file_name: null/);
   assert.match(screen, /p_source_row_number: null/);
   assert.match(board, /PaperLoadingEntryScreen/);
+  assert.match(board, /<PaperLoadingEntryScreen csvOnly/);
   assert.match(board, /activeScreen === 'actual'/);
+  assert.match(screen, /csvOnly\?: boolean/);
+  assert.match(screen, /!csvOnly && \(loadingDirectory \?/);
+  assert.match(screen, /duplicateHeaders/);
+  assert.match(screen, /malformedRow/);
+  assert.match(screen, /duplicateSourceIds/);
+  assert.match(screen, /معاينة بيانات التحميل الفعلي قبل الإرسال/);
+  assert.match(screen, /importRows\.slice\(0, 5\)/);
+  assert.match(screen, /onImported\?: \(\) => void \| Promise<void>/);
+  assert.match(screen, /await onImported\?\.\(\)/);
+  assert.match(board, /onImported=\{refreshAfterPaperImport\}/);
+  assert.match(board, /key=\{actualLoadRefreshKey\}/);
 });
 
 test("CSV import validates source rows and has an idempotent Main Office RPC", () => {
