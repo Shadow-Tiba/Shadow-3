@@ -30,6 +30,7 @@ BEGIN
   IF v_trigger_def IS NULL
      OR position('LOADED_TRIP_CANNOT_BE_CANCELLED' IN upper(v_trigger_def)) = 0
      OR position('ACTUAL_DELIVERY_ALREADY_RECORDED' IN upper(v_trigger_def)) = 0
+     OR position('PUBLIC.DELIVERY_CONFIRMATIONS' IN upper(v_trigger_def)) = 0
      OR position('OLD.STATUS = ''LOADED''' IN upper(v_trigger_def)) = 0 THEN
     RAISE EXCEPTION 'LOADED_TRIP_CANCELLATION_GUARDS_INCOMPLETE';
   END IF;
@@ -63,6 +64,6 @@ $checks$;
 -- 2. HEAD cancellation of a BOOKED, not-yet-loaded trip succeeds only with a reason.
 -- 3. Any attempt to set a LOADED booking to CANCELLED raises
 --    LOADED_TRIP_CANNOT_BE_CANCELLED, including a direct UPDATE under a test role.
--- 4. Any attempt to cancel after actual_weight or delivery_confirmed_at is populated
---    raises ACTUAL_DELIVERY_ALREADY_RECORDED.
+-- 4. Any attempt to cancel after actual_weight is populated or a delivery_confirmations
+--    row exists raises ACTUAL_DELIVERY_ALREADY_RECORDED.
 -- 5. Failed updates leave booking, actual-load evidence, and audit rows unchanged.
